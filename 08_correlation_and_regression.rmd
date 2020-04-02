@@ -1,0 +1,464 @@
+---
+title: "Correlation and Regression"
+author: "Chenxin Li"
+date: "3/26/2020"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+ 
+#Introduction
+So far we went over one-way ANOVA, randomized block design, multifactorial design, 
+repeated measures and split field design. A common feature of these designs is that 
+the independent variables are always factors, and the dependent variable is always numeric.
+To analyze these experiments, we use ANOVA followed by Tukey tests. 
+
+Now we're going to switch gear to a very different kind of experiment. 
+In this case, both the independent and dependent variables are numeric. 
+This is where correlation and regression become useful. 
+
+
+In this unit, we'll cover:
+1) What is correlation and how to interpret them?
+2) What is regression?
+3) How to perform a regression analysis? 
+
+
+#load package
+```{r}
+library(ggplot2) 
+library(tidyr)
+library(dplyr)
+library(readr)
+library(readxl)
+library(stringr)
+library(RColorBrewer)
+library(viridis)
+library(svglite)
+library(cowplot)
+```
+
+
+#what is correlation, what it means and what it does not mean. 
+Correlation describes as one variable changes, the other variable changes in a consistent direction. 
+
+To visualize that, let's use the R built-in iris dataset as an example.
+I am going to plot petal length on x axis, and petal width on y axis
+
+```{r}
+iris %>% 
+  ggplot(aes(x = Petal.Length, y = Petal.Width)) +
+  geom_point(alpha = 0.8) +
+  theme_minimal() +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+```
+You can call this kind of plot a scatter plot, i.e., the dots are scattered. 
+As you can see, as the petal length of these iris flowers increases, they also tend to have wider petals.  
+With this, we can verbally say that "petal length and petal width are correlated". 
+
+But what is the statistics to quantify that?
+We will use the correlation test.
+
+The correlation test, like any statistical methods, have a few assumptions.
+1) Each observation is independent of each other. The measurement of one does not affect the other, and no repeated measures.
+2) Normality: the errors are normally distributed. 
+3) Equal variance across the range of values 
+4) No outliers 
+
+The above four assumptions really look like the assumptions of ANOVA. And they essentially are. 
+However, there are two more. 
+
+5) Related pairs: each x value has one and only one corresponding y value.
+6) Linearity: There is a linear relation between the two variable. 
+
+It turns out the easiest way to check these assumptions is to just stare at the scatter plot. 
+
+Does it look like a linear relation? - Yeah.
+Does it look like there is more or less an even spread of dots along the range of values? - Yeah. 
+Are there any outliers (dots that are all the way out there)? - No.
+
+##the correlation test
+To do a correlation test, use the cor.test() function. 
+```{r}
+cor.test(iris$Petal.Length, iris$Petal.Width)
+```
+In the most applied sense, the two important numbers are "cor" and p-value. 
+The "cor" is the correlation coefficient. In publications it often times is notated the by lowercase letter "r".
+It ranges from +1 to -1. 
+A value of +1 means the two variables are perfectly correlated. 
+ = Increase in one variable leads to a perfect, consistent increase in the other variable. 
+A value of -1 means the two variables are perfectly negatively correlated. 
+ = Increase in one variable leads to a perfect, consistent decrease in the other variable. 
+
+A value of 0 means there is no correlation between the two variables, 
+and the null hypothesis of r is 0. 
+
+
+The p value is the probability of getting a r more extreme than observed r, 
+given the number of degrees of freedom, and if r were to be 0. 
+
+So what does the this correlation test tell us?
+r = 0.96, so that's pretty close to 1. So we have a strong positive correlation. 
+The p-value is < 2.2e-16, which means if r were to be 0, 
+the probability of finding r > 0.96 is less than 2.2e-16. So we should reject the null hypothesis. 
+Note that the p value does not indicate how strong the correlation is. 
+A low p value does not mean a strong correlation.
+Only when both |r| is near 1, and the p value is low do you have a strong correlation. 
+
+
+##Be VERY CAREFUL when you interpret a correlation.
+1) If two variables are correlated, it DOES NOT mean one cause the other. 
+2) Correlation is non-directional. It does not say which variable is independent, and which is dependent. 
+So cor.test(x, y) gives the same result as cor.test(y, x). 
+
+
+##non-linear correlation
+Can I do a correlation when the trend is non-linear? 
+Yes, but you have to do ordinal correlation instead. 
+You will correlate the rank order of the variables, instead of the actual numbers. 
+Let's do an example. 
+
+```{r}
+#this chunck simulate a mock data. You can ignore this
+set.seed(666)
+data1 <- data.frame(
+  "x" = 1:100,
+  "noise" = rnorm(n = 100, mean = 0, sd = 0.2) 
+) %>% 
+  mutate(y = log(x + 1) + noise)
+
+head(data1)
+```
+
+Let's plot this dataset to check assumptions first
+```{r}
+data1 %>% 
+  ggplot(aes(x = x, y = y)) +
+  geom_point(alpha = 0.8) +
+  theme_minimal() +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+```
+
+Now you can see the trend is clearly non-linear. 
+There is a workaround for this. We'll use the Spearman's method for ordinal correlation
+In the cor.test() function, we will add 'method = "s"' argument to 
+specify we are using Spearman's method for correlating rank orders.
+
+```{r}
+cor.test(data1$x, data1$y, method = "s")
+```
+What R dose here is it ranks the numbers in both variables first, then it correlates the ranks. 
+rho is the Spearman's version of cor. You would interpret rho and p-value the same way as you would for a common correlation.
+
+
+
+#simple linear regression
+Let's go back to the iris example
+```{r}
+iris %>% 
+  ggplot(aes(x = Petal.Length, y = Petal.Width)) +
+  geom_point(alpha = 0.8) +
+  theme_minimal() +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+```
+Now we know petal length and petal width are correlated, 
+which means I can predict petal width with a given petal length, and vice versa. 
+How do I do that?
+
+To achieve that, we need to make a regression model. 
+A regression model is a linear model that describe a equation relating the two variables of interest. 
+In a linear regression, the relation will be y = ax + b,
+where "a" is the slope and "b" is the intercept. 
+By performing a simple linear regression, you will find the values of slope and intercept.
+
+
+Linear regression, has the same assumptions as correlation. Again, the best way to check is to stare at the scatter plot. 
+
+
+##Setting up a linear regression
+To set up a linear regression, we'll use the lm() function
+```{r}
+model_petal <- lm(Petal.Width ~ Petal.Length, data = iris) 
+```
+Easy. 
+In this case, it doesn't matter if we do width ~ length or length ~ width. 
+However, in an actual experiment, say we are looking at the rate of an enzyme across different substrate concentrations,
+we should do rate ~ conc, because the concentration is the manipulative variable, the rate is the response variable. 
+
+
+We can check the assumptions of linear regression the way we check assumptions of ANOVA.
+Normality?
+```{r}
+plot(model_petal, which = 2)
+```
+Pretty normal
+
+Equal variance?
+```{r}
+plot(model_petal, which = c(1, 3))
+```
+There might be a little more variance at the higher end of the data. But it's not too bad. 
+
+##interpret a linear regression
+```{r}
+summary(model_petal)
+```
+### the equation 
+The summary() function allows you to interpret your regression model. 
+The Coefficients are the intercept and slope. 
+Looks like we have a intercept = -0.36, and slope = 0.4157. 
+You can look at the their t values as well. 
+Again the null hypothesis is t = 0. The further the observed t is from 0, the less likely the null hypothesis is correct. 
+So your equation will be: Petal.Width = 0.4157 * Petal.Length - 0.36
+
+### the goodness of fit
+An important result of a linear regression is R squared. 
+R squared is the measurement of goodness-of-fit. 
+It is the fraction of variation explained by the model. 
+It ranges from 0 to 1. 
+A value of 0 means 0% of the variance is explained by the model, meaning poor fit.
+A value of 1 means 100% of the variance is explained by the model, meaning perfect fit.
+
+A related concept is adjusted R^2. Adjusted R^2 corrects for the number of parameters in the model. 
+In this example, we have two parameters: slope for petal length, and intercept. 
+Adding more parameters to the model always increases R^2, because there is always variation can be explained by chance.
+Adjusted R^2 corrects for that. The more parameters in the model, the lower the adjusted R^2. 
+We will explain adjusted R^2 more in depth when we talk out polynomial curve fitting. 
+The null hypothesis of R^2 and adjusted R^2 is 0. 
+
+
+###visualize your model
+You might want to plot out your equation and see how well it fits the data.
+1) First find the range of the predictor. In this case the predictor is petal length. 
+2) Go from the lower end to the higher end of the predictor, one small step at a time (e.g. 0.1 increment at a time).
+3) Calculate the predicted values using the equation found by the regression model
+
+
+```{r}
+fitted_petal <- data.frame(
+  "Petal.Length" = seq(min(iris$Petal.Length), max(iris$Sepal.Length), by = 0.1)
+) %>%
+  mutate(Petal.Width = 0.4157 * Petal.Length - 0.36)
+```
+
+```{r}
+iris %>% 
+  ggplot(aes(x = Petal.Length, y = Petal.Width)) +
+  geom_point(alpha = 0.8) + 
+  geom_line(data = fitted_petal, size = 1.2, color = "indianred") + # this is the command 
+  theme_minimal() +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+```
+That looks pretty good.
+
+
+
+###predict intermediate values
+Say, if I have a flower with petal length of 3, how wide would its petal most likely be?
+Well, we just plug it in!
+```{r}
+0.4157 * 3 - 0.36
+```
+
+That gives us 0.8871. 
+
+
+#Curve fitting using linear model
+A limitation of the simple linear regression is that a linear relationship is required. 
+However, under certain circumstances, you can also fit curves using linear model.
+
+You can fit curves using linear model when the underlying mathematical relationship is given. 
+
+To understand that, let's use the R built-in dataset Puromycin as an example.
+In this experiment, we are looking at the rate of an enzyme across different substrate concentrations. 
+There are two states: drug treated or non-treated. We will only use the non-treated control data for now.
+
+```{r}
+Puromycin_ctrl <- Puromycin %>% 
+  filter(state == "untreated")
+
+head(Puromycin_ctrl)
+```
+
+Let's visualize the data first
+```{r}
+Puromycin_ctrl %>% 
+  ggplot(aes(x = conc, y = rate)) +
+  geom_point() +
+  theme_minimal() +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) 
+```
+
+This is clearly not linear. However, the underlying mathematical expression of enzyme kinetics is known:
+V = Vmax(S/(S + K)), 
+where V is rate,
+Vmax is the maximum rate,
+S is the substrate concentration, and
+K is a constant. When S = K, you get V = (1/2)*Vmax. 
+This is the classic Michaelis-Menten enzyme kinetics. 
+
+It turns out we can linearize the relationship using data transformation.
+If we invert both sides of the equation, we'll get: 
+
+1/V = K/(Vamx * S) + 1/Vmax 
+
+This is also called the double reciprocal equation.
+
+You can see that if we set 1/V as the dependent variable, and 1/S as the predictor,
+we can get K/Vmax as the slope and 1/Vmax as the intercept. 
+
+So let's find the parameters now!
+
+```{r}
+Puromycin_ctrl <- Puromycin_ctrl %>% 
+  mutate(one_over_v = 1/rate) %>% 
+  mutate(one_over_s = 1/conc)
+```
+
+```{r}
+model_ctrl <- lm(one_over_v ~ one_over_s, data = Puromycin_ctrl) 
+```
+Before we proceed, let's check the assumptions first. 
+
+Normality?
+```{r}
+plot(model_ctrl, which = 2)
+```
+Looks pretty ok. 
+
+Equal variance?
+```{r}
+plot(model_ctrl, which = c(1, 3))
+```
+we might have a problem. The variance is larger at the higher end of 1/S. But there is really nothing we can do here. 
+
+##interpret the model
+```{r}
+summary(model_ctrl)
+```
+
+Looks like we have a equation of 
+1/V = 2.15e-4*(1/S) + 6.972e-3
+
+So Vmax = 1/6.972e-3, and K = 2.15e-4/6.972e-3
+
+```{r}
+1/6.972e-3 #Vmax
+2.15e-4/6.972e-3 #K
+```
+
+So Vmax = 143, and K = 0.03
+
+In addition, we have an R^2 = 0.89, which means 89% of the variation in the data are explain by the model. Pretty good. 
+
+##Visualize the the model
+First let's viualize the model in double reciprocal scale
+
+```{r}
+fitted_rate <- data.frame(
+  "one_over_s" = seq(min(Puromycin_ctrl$one_over_s), max(Puromycin_ctrl$one_over_s), by = 0.1)
+) %>%
+  mutate(one_over_v = 2.15e-4*(one_over_s) + 6.972e-3) %>% 
+  mutate(conc = 1/one_over_s) %>% 
+  mutate(rate = 1/one_over_v)
+```
+
+```{r}
+Puromycin_ctrl %>% 
+  ggplot(aes(x = one_over_s, y = one_over_v)) +
+  geom_point() +
+  geom_line(data = fitted_rate, size = 1.2, color = "indianred") +
+  labs(x = "1/S",
+       y = "1/V") +
+  theme_minimal() +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) 
+```
+
+We can also visualize the model under the original scale
+```{r}
+Puromycin_ctrl %>% 
+  ggplot(aes(x = conc, y = rate)) +
+  geom_point() +
+  geom_line(data = fitted_rate, size = 1.2, color = "indianred") +
+  theme_minimal() +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+```
+You might have noticed that although our model estimated Vmax to be 143,
+in the actual data, the rate can go as high as > 150. 
+This is clearly not perfect, but nonetheless it fits the lower concentration data points very well. 
+
+#Exercise one
+Now you have learned how to perform correlation test and how to perform linear regression
+Let's practise that!
+
+We'll practise correlation test first. We'll use the iris data again.
+Visualize the relation between sepal length and petal Width across flowers.
+Make your plot here:
+
+
+
+
+
+
+
+
+Is there a correlation between sepal length and petal width? Do a correlation test.
+
+
+What does the correlation coefficient tell you?
+
+
+Between sepal length and petal length, which has a stronger correlation with petal width?
+
+
+
+#Exercise two
+Now let's practice linear regression. We'll use the Puromycin data again.
+However, we will use the drug treated data this time.
+Again, we are looking at the rate of an enzyme across substrate concentrations, 
+but this time the enzyme is treated with the drug puromycin. 
+
+```{r}
+Puromycin_treat <- Puromycin %>% 
+  filter(state == "treated") %>% 
+  mutate(one_over_v = 1/rate) %>% 
+  mutate(one_over_s = 1/conc)
+```
+
+
+##set up the model and interpret the model
+What is the intercept and slope?
+What is the R^2 and what does it mean?
+
+Calculate K and Vmax from the coefficients. 
+How does puromycin affect the K and Vmax of this enzyme? 
+
+
+
+
+
+##visualize the model under the double reciprocal scale and the original scale
+Make your plots here: 
+
+
+
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

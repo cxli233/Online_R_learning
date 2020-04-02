@@ -1,0 +1,367 @@
+---
+title: "Multifactorial Design and interactions"
+author: "Chenxin Li"
+date: "3/25/2020"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+ 
+#Introduction
+
+Last time we talked about randomized block design, 
+and how one can using blocks to control for unintended variations in an experiment. 
+
+This time we are going to talk about multifactorial design. We will cover:
+
+1) What is a multifactorial design? 
+2) Why would one design a multifactorial experiment?
+3) What is interaction between factors?
+4) How to analyze a multifactorial experiment? 
+
+#load pacakges
+```{r}
+library(emmeans)  
+library(multcomp)
+library(multcompView)
+library(ggplot2) 
+library(tidyr)
+library(dplyr)
+library(readr)
+library(readxl)
+library(stringr)
+library(RColorBrewer)
+library(viridis)
+library(svglite)
+library(cowplot)
+```
+
+
+
+#What is a multifactorial design? 
+
+A multifactorial design is an experiment that have multiple factors of independent variables. 
+It might seem a bit abstract. So let's see an actual example.
+
+We will use the R built-in dataset ToothGrowth as an example.
+ToothGrowth is an experiment in which researchers looked at the effect of two supplements "VC" and "OJ" 
+on the tooth length of guinea pigs.
+
+Each animal was given a supplement (either OJ or VC);
+and the animal can receive a high dose (2), mid dose (1) or low dose (0.5).
+At the end of the experiment, the longest tooth of the animal is measured. 
+
+```{r}
+head(ToothGrowth)
+str(ToothGrowth)
+```
+Looks like it has 60 rows and 3 columns. 
+"len" is tooth length. It will be our dependent variable. 
+There are 2 kinds of "supp": "VC" or "OJ"
+And there are multiple levels of dose, which is recorded as a numeric variable in the table. 
+
+This experiment is called a multifactorial design because 
+it has two independent variables of interest: supp and dose. 
+
+supp is a factor; dose is another factor. We have two factors of interest, thus multifactorial. 
+
+#Why would one want to do a multifactorial experiment? 
+The multifactorial design is popular because it is efficient. 
+When we have multiple independent variables of interest, 
+it allows us to compare multiple combinations of independent variables in the same time. 
+
+Let's use the ToothGrowth data as an example. 
+There are two supplements and three doses of each. 
+2 * 3 = 6 combinations. 
+And the multifactorial design will allow us to compare all 6 combinations in the same time. 
+
+
+#What is interaction among factors?
+A very important concept of the multifactorial design is interaction. 
+Interaction stands for "the effect of one factor depends on the other factor".
+
+To understand this, let's visualize the data first. 
+
+```{r}
+wisteria <- c("grey65", "burlywood3", "khaki2", "plum1", "lightcyan2", "cornflowerblue", "slateblue3")
+
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  stat_summary(geom = "line",  
+               fun.y = mean,  
+               aes(group = supp, color = supp),  
+               size = 1.2) + 
+  stat_summary(geom = "ribbon",   
+               fun.data = mean_se, 
+               aes(group = supp,
+                   fill = supp), 
+               alpha = 0.5) +   
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") +    
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  scale_color_manual(values = wisteria[c(1, 7)]) + 
+  scale_x_continuous(breaks = c(0.5, 1, 2)) +  
+  labs(x = "dose",              
+       y = "teeth length",
+       fill = "supplement",
+       color = "supplement") +
+  guides(color = F) +
+  guides(fill = guide_legend(nrow = 1, ncol = 2)) + # set fill legend to 1 row 2 columns. 
+  theme_minimal() +
+  theme(legend.position = c(0.8, 0.2)) + 
+  theme(axis.line = element_line(size = 1.2)) + 
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+```
+
+You can see that, as the dose of either supplement increases, the teeth length also increases. 
+So for both supplements, higher dose = longer teeth. 
+
+But if you look carefully at the lines, you will notice that the two curves are not exactly parallel. 
+While teeth are longer for OJ than VC in lower doses, there is no difference in dose = 2. 
+
+And THAT is interaction. The effect of supplement depends on the dose. 
+The effect of one factor (supplement) depends on the other factor (does). That's interaction. 
+In the graphical sense, it means the trends are not parallel to each other. 
+
+When you set up a multifactorial design, you will most certainly encounter interactions. 
+
+
+#How to analyze a multifactorial experiment? 
+
+You will analyze a multifactorial experiment like a randomized block experiment, 
+except that you will have to consider interaction now. 
+
+Let's fill out the table.
+
+
+|  source | factor | levels |    
+|  supp   | treat  |  2     |   
+|  dose   | treat  |  3     |   
+|  animal | OU, EU |  60    |   
+
+We have supp and dose as our treatments. 
+They have 2 and 3 levels, repectively. 
+We have 60 observations of animal (each dot on the graph is an animal). 
+In this case the animal is both observational units and experimental units. 
+
+Last time we learned that we should include all sources of variation except OU. 
+So that gives len ~ supp + dose. 
+
+But how do I include the interaction between supp and dose in my linear model? 
+
+
+##Setting up linear model for multifactorial design
+To include an interaction in a linear model, 
+you use the "factor1:factor2" syntax. 
+
+That is len ~ supp + dose + supp:dose   
+
+A simplified syntax is len ~ supp * dose. 
+The "*" symbol means + and interaction. 
+That is supp * dose = supp + dose + supp:dose 
+
+Oftentimes people refer to the independent variables as the "main effects". 
+So supp and dose are your main effects. 
+
+When you set up your model, you type in the main effects first, then the interactions. 
+
+WARNING: the dose is recorded as a numeric variable in the dataset. 
+In a multifactorial experiment, we need to set it as factor. 
+```{r}
+ToothGrowth_new <- ToothGrowth %>% 
+  mutate(dose.f = as.factor(dose))   
+```
+
+```{r}
+model_teeth <- lm(len ~ supp + dose.f + supp:dose.f, data = ToothGrowth_new) 
+```
+You can also do len ~ supp * dose.f. That gives you the same thing. 
+
+Note that you can also set it up as len ~ dose.f * supp. 
+Technically there is a minute difference between the two models, 
+but oftentimes it makes no difference to your conclusions at the end of the day.
+We will ignore that technicality for now.
+
+
+Let's check the assumptions of ANOVA first.
+Normality?
+```{r}
+plot(model_teeth, which = 2)
+```
+
+Pretty good!
+
+Next, equal variance? 
+```{r}
+plot(model_teeth, which = c(1, 3))
+```
+
+Looks rather okay to me. 
+We are all clear to do ANOVA
+ 
+
+##ANOVA
+```{r}
+anova(model_teeth)
+```
+
+1) supp has a F of 12, which is >> 1. That means the means of supp are different
+
+2) dose.f has F of 133. This means not only are the means of dose.f different, 
+but also dose.f explain a larger proportion of variation in the data than supp.
+
+3) Lastly, the interaction supp:dose.f has a F of 5, also significantly > 1 (p = 0.02 < 0.05). 
+This means the effect of supp depends on the dose, consistent with what the graph showed us. 
+
+
+Now we can go ahead and find out which supp:dose combination gave us the longest teeth. 
+
+##Tukey tests
+When you do a Tukey test on a multifactorial experiment, You need to be VERY THOUGHTFUL.
+Ask yourself what is the comparison that I am actually interested in? 
+
+In this example:
+Am I interested in the effect of supp at each dose level? Or,
+Am I interested in the effect of dose for each supp? 
+
+Depending on the question of interest, you will need a different Tukey test layout. 
+Of course the choice of analysis all depends on the researcher and their interests. 
+
+###test effect of supp at each dose level
+Let's say we are interested in the effect of supp at each dose level. 
+To specify that in the emmeans command, we will use the ~ supp | dose syntax. 
+This means compare across supp at each dose level.
+
+
+```{r}
+estimate_per_dose <- emmeans(model_teeth,pairwise ~ supp | dose.f) 
+estimate_per_dose$contrast
+```
+
+You can also pull out the cld
+```{r}
+cld(estimate_per_dose$emmeans, Letters = letters)
+```
+
+This tells us that at dose = 0.5 or 1, OJ gives longer teeth than VC.
+However, at dose = 2, OJ and VC have about the same effect. 
+
+
+###test effect of dose at each supp
+Now let's say we are interested in the effect of different doses for each supp.
+How should we set up the emmeans command? 
+
+You'll use ~ dose.f | supp now. 
+This means compare across dose at each supp level.
+
+
+```{r}
+estimate_per_supp <- emmeans(model_teeth,pairwise ~ dose.f | supp) 
+estimate_per_supp$contrast
+```
+
+You can also pull up the cld
+```{r}
+cld(estimate_per_supp$emmeans, Letters = letters)
+```
+
+This tells us that:
+
+1) For OJ, dose 0.5 is significantly lower than dose 1 and 2. 
+Dose 2 is not significanty different from dose 1. 
+
+2) For VC, as the dose increases, each dose is significantly different from the previous. 
+
+Hopefully you can see that depending on how we set up the emmeans command, we get different inferences.
+So before you set up a Tukey test for a multifactorial experiment,
+do think about what you are actually interested in. 
+
+
+#Exercise
+Now you have learned how to analyze multifactorial experiment. 
+You will practise it. 
+
+We will use an actual experiment "potato yield" as example. 
+In this experiment, we are looking at the yield of two varieties of potato across differet nitrogen input. 
+
+Potato from one of the two varieties were randomly assigned one of the 5 nitrogen treatments. 
+At the end of the experiment, potatos were harvested and weighed. 
+
+```{r}
+Potato_Yield <- read.csv("Potato_Yield.csv")
+head(Potato_Yield)
+str(Potato_Yield)
+```
+
+
+##visualize the data
+make the best plot you can to visualize the data.
+
+What to put on x axis?
+What to color/fill with?
+Any faceting that you want to use? 
+
+WARNING: are there any numerically recorded variables you want to change into factors?
+(Hint: there is 1 variable that you need to change into factor.) 
+
+Make your plot here:
+
+
+
+
+
+
+
+
+##setting up the model
+
+Fill out the table: 
+
+What are the sources of variation?
+What factors are they? (treatment? block? observational units? experimental units?)
+How many levels in each?
+
+
+| source | factor | levels |   
+|  ...   | ...    | ...    |   
+ 
+What main effects should you include in the model? 
+Which interactions should you include in the model? 
+
+Set up the linear model. 
+
+
+##check assumptions of ANOVA 
+
+Normality?
+
+Equal variance? 
+
+##run ANOVA
+How would you interpret the ANOVA table?
+
+
+##Tukey test
+Say we are interested in knowing which variety performs better each nitrogen input. 
+How should you set up the Tukey test? 
+ 
+Pull out the cld output and interpret the results. 
+
+ `
+ 
+
+
+
+
+
+
+ 
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
