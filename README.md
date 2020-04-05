@@ -2,8 +2,9 @@
 Online R learning project for advanced undergrads during the COVID-19 pandemic 
 
 author: Chenxin Li, 
+Grad student 
 Department of Plant Biology,
-Sundaresan lab
+UC Davis 
 lukli@ucdavis.edu 
 
 # Content
