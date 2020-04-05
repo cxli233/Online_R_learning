@@ -50,7 +50,7 @@ How could that be?
 
 Let's imagine an experiment like this: 
 
-Say I am tracking the height of some rice plants over time.
+Say I am tracking the heights of some rice plants over time.
 Every week, I go to measure the height of those plants. 
 
 And THAT is a kind of repeated measure. The same plants are measured multiple times throughout the experiment. 
@@ -181,7 +181,7 @@ rice_growth <- rice_growth %>%
 ```
 
 ```{r}
-model_rice <- lmer(Height_mm ~ age.f * genotype + (1|flat) + (1|pot), data = rice_growth)
+model_rice <- lmer(Height_mm ~ age.f * genotype + (1|flat.f) + (1|pot), data = rice_growth)
 ```
 
 

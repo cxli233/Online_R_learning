@@ -164,14 +164,14 @@ Thus the model will be lmer(growth ~ salt * genotype + (1|dish))
 #How to analyze an split field experiment?
 we will use an actual experiment as an example. 
 In this experiment, researchers were looking at the effect of temperature and phosphate 
-on the leaf thickness across 9 genotypes of maize. 
+on the stem thickness across 9 genotypes of maize. 
 
 They had 4 growth chambers (C1 - C4). C2 and C4 were assigned as hot, while C1 and C3 were assigned as cool. 
 In each chamber, there were 10 trays (T1 to T10). 
 T1 through T5 were watered high phosphate water, while T6 through T10 were watered low phosphate water. 
 
 Each tray contains one plant of each genotpe.
-At the end of the experiment, a leaf from each plant was measured for thickness.
+At the end of the experiment, the stem from each plant was measured for thickness.
 
 It already sounds very complicated. So let's visualize the design in ggplot.
 
@@ -253,7 +253,7 @@ Now each Tray has its own unique ID.
 What will the model be?
 
 ```{r}
-model_maize <- lmer(thickness ~ Temp * Phos * Geno + (1|Chamber) + (1|Tray), data = maize_data)
+model_maize <- lmer(thickness ~ Temp * Phos * Geno + (1|Chamber) + (1|Tray.ID), data = maize_data)
 ```
 There is an warning message. 
 Not sure why that is, but the rest of the analysis should still run. 
