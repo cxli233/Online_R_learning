@@ -1,0 +1,519 @@
+---
+title: "Correlation and Regression"
+author: "Chenxin Li"
+date: "6/22/2020"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+ 
+#Introduction
+So far we went over one-way ANOVA, randomized block design, multifactorial design, 
+repeated measures and split field design. A common feature of these designs is that 
+the independent variables are always factors, and the dependent variable is always numeric.
+To analyze these experiments, we use ANOVA followed by Tukey tests. 
+
+Now we're going to switch gear to a very different kind of experiment. 
+In this case, both the independent and dependent variables are numeric. 
+This is where correlation and regression become useful. 
+
+
+In this unit, we'll cover:
+1) What is correlation and how to interpret them?
+2) What is regression?
+3) How to perform a regression analysis? 
+
+
+#load package
+```{r}
+library(ggplot2) 
+library(tidyr)
+library(dplyr)
+library(readr)
+library(readxl)
+library(RColorBrewer)
+library(viridis)
+```
+
+
+#what is correlation, what it means and what it does not mean. 
+Correlation describes as one variable changes, the other variable changes in a consistent direction. 
+
+To visualize that, we'll use income and child motality rate across countries as an example.
+```{r}
+child_mortality <- read_csv("data/child_mortality_0_5_year_olds_dying_per_1000_born.csv") 
+babies_per_woman <- read_csv("data/children_per_woman_total_fertility.csv") 
+income <- read_csv("data/income_per_person_gdppercapita_ppp_inflation_adjusted.csv")  
+```
+These are two datasets downloaded from the Gapminder foundation (https://www.gapminder.org/data/). 
+The Gapminder foundation has datasets on life expectancy, economy, education, population across countries and years. 
+The goal is to remind us not only the “gaps” between developed and developing worlds, 
+but also the amazing continuous improvements of quality of life through time.
+
+1) child mortality (0 - 5 year olds) dying per 1000 born.
+2) median income per person. 
+3) births per woman.
+These were recorded from year 1800 and projected all the way to 2100.
+
+```{r}
+head(child_mortality)
+head(income)
+head(babies_per_woman)
+```
+These tables are not in tidy format. The years spread out across 200+ columns. 
+Let's make them into the tidy format first, and then we'll join them by matching the country and year columns.  
+
+```{r}
+child_mortality_tidy <- child_mortality %>% 
+  gather("year", "death_per_1000", c(2:302)) 
+
+income_tidy <- income %>% 
+  gather("year", "income", c(2:242)) 
+
+babies_per_woman_tidy <- babies_per_woman %>% 
+  gather("year", "birth", c(2:302)) 
+
+mortality_and_income_and_birth <- child_mortality_tidy %>% 
+  inner_join(income_tidy, by = c("country", "year")) %>%
+  inner_join(babies_per_woman_tidy, by = c("country","year")) %>% 
+  mutate(log10_income = log10(income))
+
+head(mortality_and_income_and_birth)
+```
+(FYI: income has a huge range and not normally distributed. The best way is to do a log transformation on income first.) 
+There are a lot of data. For the sake of this discussion, we'll just look at year 1945 (when WWII ended) for now.
+```{r}
+data_1945 <- mortality_and_income_and_birth %>% 
+  filter(year == 1945)
+```
+
+I'm going to plot log10(income) on x axis and child mortality on y axis.
+```{r}
+data_1945 %>% 
+  ggplot(aes(x = log10_income, y = death_per_1000)) +
+  geom_point(alpha = 0.8) +
+  geom_smooth(method = "lm", se = F) +
+  theme_minimal() +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+```
+You can call this kind of plot a scatter plot, i.e., the dots are scattered. 
+As you can see, across countries, as income increases, child mortality decreases. 
+With this, we can verbally say that "income and child mortality are negatively correlated (or anti-correlated)". 
+
+
+But what is the statistics to quantify that?
+We will use the correlation test.
+
+The correlation test, like any statistical methods, have a few assumptions.
+1) Each observation is independent of each other. The measurement of one does not affect the other, and no repeated measures.
+2) Normality: the errors are normally distributed. 
+3) Equal variance across the range of values 
+4) No outliers 
+
+The above four assumptions really look like the assumptions of ANOVA. And they essentially are. 
+However, there are two more. 
+
+5) Related pairs: each x value has one and only one corresponding y value.
+6) Linearity: There is a linear relation between the two variable. 
+
+It turns out the easiest way to check these assumptions is to just stare at the scatter plot. 
+
+Does it look like a linear relation? - Yeah.
+Does it look like there is more or less an even spread of dots along the range of values? - More or less okay.
+Are there any outliers (dots that are all the way out there)? - There is quite a spread, but I don't think there are outliers. 
+
+##the correlation test
+To do a correlation test, use the cor.test() function. 
+```{r}
+cor.test(data_1945$death_per_1000, data_1945$log10_income)
+```
+In the most applied sense, the two important numbers are "cor" and p-value. 
+The "cor" is the correlation coefficient. In publications it often times is notated the by lowercase letter "r".
+It ranges from +1 to -1. 
+A value of +1 means the two variables are perfectly correlated. 
+ = Increase in one variable leads to a perfect, consistent increase in the other variable. 
+A value of -1 means the two variables are perfectly negatively correlated. 
+ = Increase in one variable leads to a perfect, consistent decrease in the other variable. 
+
+A value of 0 means there is no correlation between the two variables, 
+and the null hypothesis of r is 0. 
+
+
+The p value is the probability of getting a r more extreme than observed r, 
+given the number of degrees of freedom, and if r were to be 0. 
+
+So what does the this correlation test tell us?
+r = -0.62, so we have a moderate correlation. It's not surprising, as there is a quite a spread across the line.  
+The p-value is < 2.2e-16, which means if r were to be 0, 
+the probability of finding r < -0.62 is less than 2.2e-16. So we should reject the null hypothesis. 
+So log10(income) and child mortality are definately anti-correlated. 
+
+Note that the p value does not indicate how strong the correlation is. 
+A low p value does not mean a strong correlation.
+Only when both |r| is near 1, and the p value is low do you have a strong correlation. 
+
+
+##Be VERY CAREFUL when you interpret a correlation.
+1) If two variables are correlated, it DOES NOT mean one cause the other. 
+2) Correlation is non-directional. It does not say which variable is independent, and which is dependent. 
+So cor.test(x, y) gives the same result as cor.test(y, x). 
+
+
+##non-linear correlation
+Can I do a correlation when the trend is non-linear? 
+Yes, but you have to do ordinal correlation instead. 
+You will correlate the rank order of the variables, instead of the actual numbers. 
+Let's do an example. 
+
+Now say we want to correlate child mortality and income (not log10).
+
+Let's plot this dataset to check assumptions first
+```{r}
+data_1945 %>% 
+  ggplot(aes(x = income, y = death_per_1000)) +
+  geom_point(alpha = 0.8) +
+  theme_minimal() +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+```
+
+Now you can see the trend is clearly non-linear. As income increases, mortality does not linearly decrease. 
+There is a workaround for this. We'll use the Spearman's method for ordinal correlation
+In the cor.test() function, we will add 'method = "s"' argument to 
+specify we are using Spearman's method for correlating rank orders.
+
+```{r}
+cor.test(data_1945$death_per_1000, data_1945$income, method = "s")
+```
+What R dose here is it ranks the numbers in both variables first, then it correlates the ranks. 
+rho is the Spearman's version of cor. You would interpret rho and p-value the same way as you would for a common correlation.
+We actually get very comparable results here. 
+
+
+#simple linear regression
+Let's look at mortality vs log10(income) again 
+```{r}
+data_1945 %>% 
+  ggplot(aes(x = log10_income, y = death_per_1000)) +
+  geom_point(alpha = 0.8) +
+  geom_smooth(method = "lm", se = F) +
+  theme_minimal() +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+```
+Now we know child mortality and log10(income) are correlated, 
+which means I can predict mortality with a given log10(income), and vice versa. 
+How do I do that?
+
+To achieve that, we need to make a regression model. 
+A regression model is a linear model that describe a equation relating the two variables of interest. 
+In a linear regression, the relation will be y = ax + b,
+where "a" is the slope and "b" is the intercept. 
+By performing a simple linear regression, you will find the values of slope and intercept.
+
+
+Linear regression, has the same assumptions as correlation. Again, the best way to check is to stare at the scatter plot. 
+
+
+##Setting up a linear regression
+To set up a linear regression, we'll use the lm() function
+```{r}
+model_1945 <- lm(death_per_1000 ~ log10(income), data = data_1945) 
+```
+Easy. 
+In this case, we probably want to do mortality ~ log10(income) rather than log10(income) ~ mortality. 
+This is under the assumption that the lack of income is the driving factor for higher child mortality. 
+Similarly, in actual experiments, say we are looking at the rate of an enzyme across different substrate concentrations,
+we should do rate ~ conc, because the concentration is the manipulative variable, the rate is the response variable. 
+
+
+We can check the assumptions of linear regression the way we check assumptions of ANOVA.
+Normality?
+```{r}
+plot(model_1945, which = 2)
+```
+Pretty normal
+
+Equal variance?
+```{r}
+plot(model_1945, which = c(1, 3))
+```
+It looks rather okay to me. There might be a little less variance at the higher end, but it's not too bad. 
+
+##interpret a linear regression
+```{r}
+summary(model_1945)
+```
+### the equation 
+The summary() function allows you to interpret your regression model. 
+The Coefficients are the intercept and slope. 
+Looks like we have a intercept = 893, and slope = -191.81. 
+You can look at the their t values as well. 
+Again the null hypothesis is t = 0. The further the observed t is from 0, the less likely the null hypothesis is correct. 
+So your equation will be: mortality = -191.81 * log10(income) + 893 
+
+The unit of child mortality is death per 1000 births. And note that income is in units log10.
+This equation tells us that, when income increases 10 fold (+1 unit in log10), child mortality on average decrease 191 per 1000 births.  
+
+### the goodness of fit
+An important result of a linear regression is R squared. 
+R squared is the measurement of goodness-of-fit. 
+It is the fraction of variation explained by the model. 
+It ranges from 0 to 1. 
+A value of 0 means 0% of the variance is explained by the model, meaning poor fit.
+A value of 1 means 100% of the variance is explained by the model, meaning perfect fit.
+
+A related concept is adjusted R^2. Adjusted R^2 corrects for the number of parameters in the model. 
+In this example, we have two parameters: slope forlog10(income), and intercept. 
+Adding more parameters to the model always increases R^2, because there is always variation can be explained by chance.
+Adjusted R^2 corrects for that. The more parameters in the model, the lower the adjusted R^2. 
+We will explain adjusted R^2 more in depth when we talk out polynomial curve fitting. 
+The null hypotheses of R^2 and adjusted R^2 are 0.
+
+In this case our R^2 is 0.38, which means 38% of the variances in child mortality can be explained by log10(income).
+Of course this is far from 100%, as we know child mortality is affected by many other socioeconomic factors. 
+
+
+###visualize your model
+You might want to plot out your equation and see how well it fits the data.
+1) First find the range of the predictor. In this case the predictor is log10(income). 
+2) Go from the lower end to the higher end of the predictor, one small step at a time (e.g. 0.1 increment at a time).
+3) Calculate the predicted values using the equation found by the regression model
+
+
+```{r}
+fitted_mortality <- data.frame(
+  "log10_income" = seq(min(data_1945$log10_income), max(data_1945$log10_income), by = 0.1)
+) %>%
+  mutate(death_per_1000 = -191.81 * log10_income + 893 )  
+```
+
+```{r}
+data_1945 %>% 
+  ggplot(aes(x = log10_income, y = death_per_1000)) +
+  geom_point(alpha = 0.8) +
+  geom_line(data = fitted_mortality, color = "indianred", size = 1.2) +
+  theme_minimal() +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+```
+That looks pretty good.
+
+
+
+###predict intermediate values
+Say, if a country has median income of 10,000 dollars a year, what would the child mortality be? 
+Well, we just plug it in!
+log10(10000) gives us 4. 
+```{r}
+-191.81 * 4 + 893
+```
+
+That gives us 126 deaths per 1000 births, which is 12.6%.
+
+
+#Curve fitting using linear model
+A limitation of the simple linear regression is that a linear relationship is required. 
+However, under certain circumstances, you can also fit curves using linear model.
+
+You can fit curves using linear model when the underlying mathematical relationship is given. 
+
+To understand that, let's use the R built-in dataset Puromycin as an example.
+In this experiment, we are looking at the rate of an enzyme across different substrate concentrations. 
+There are two states: drug treated or non-treated. We will only use the non-treated control data for now.
+(Ref: Treloar, M. A. (1974), Effects of Puromycin on Galactosyltransferase in Golgi Membranes, M.Sc. Thesis, U. of Toronto.) 
+
+```{r}
+Puromycin_ctrl <- Puromycin %>% 
+  filter(state == "untreated")
+
+head(Puromycin_ctrl)
+```
+
+Let's visualize the data first
+```{r}
+Puromycin_ctrl %>% 
+  ggplot(aes(x = conc, y = rate)) +
+  geom_point() +
+  theme_minimal() +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) 
+```
+
+This is clearly not linear. However, the underlying mathematical expression of enzyme kinetics is known:
+V = Vmax(S/(S + K)), 
+where V is rate,
+Vmax is the maximum rate,
+S is the substrate concentration, and
+K is a constant. When S = K, you get V = (1/2)*Vmax. 
+This is the classic Michaelis-Menten enzyme kinetics. 
+
+It turns out we can linearize the relationship using data transformation.
+If we invert both sides of the equation, we'll get: 
+
+1/V = K/(Vamx * S) + 1/Vmax 
+
+This is also called the double reciprocal equation.
+
+You can see that if we set 1/V as the dependent variable, and 1/S as the predictor,
+we can get K/Vmax as the slope and 1/Vmax as the intercept. 
+
+So let's find the parameters now!
+
+```{r}
+Puromycin_ctrl <- Puromycin_ctrl %>% 
+  mutate(one_over_v = 1/rate) %>% 
+  mutate(one_over_s = 1/conc)
+```
+
+```{r}
+model_ctrl <- lm(one_over_v ~ one_over_s, data = Puromycin_ctrl) 
+```
+Before we proceed, let's check the assumptions first. 
+
+Normality?
+```{r}
+plot(model_ctrl, which = 2)
+```
+Looks pretty ok. 
+
+Equal variance?
+```{r}
+plot(model_ctrl, which = c(1, 3))
+```
+we might have a problem. The variance is larger at the higher end of 1/S. But there is really nothing we can do here. 
+
+##interpret the model
+```{r}
+summary(model_ctrl)
+```
+
+Looks like we have a equation of 
+1/V = 2.15e-4*(1/S) + 6.972e-3
+
+So Vmax = 1/6.972e-3, and K = 2.15e-4/6.972e-3
+
+```{r}
+1/6.972e-3 #Vmax
+2.15e-4/6.972e-3 #K
+```
+
+So Vmax = 143, and K = 0.03
+
+In addition, we have an R^2 = 0.89, which means 89% of the variation in the data are explain by the model. Pretty good. 
+
+##Visualize the the model
+First let's viualize the model in double reciprocal scale
+
+```{r}
+fitted_rate <- data.frame(
+  "one_over_s" = seq(min(Puromycin_ctrl$one_over_s), max(Puromycin_ctrl$one_over_s), by = 0.1)
+) %>%
+  mutate(one_over_v = 2.15e-4*(one_over_s) + 6.972e-3) %>% 
+  mutate(conc = 1/one_over_s) %>% 
+  mutate(rate = 1/one_over_v)
+```
+
+```{r}
+Puromycin_ctrl %>% 
+  ggplot(aes(x = one_over_s, y = one_over_v)) +
+  geom_point() +
+  geom_line(data = fitted_rate, size = 1.2, color = "indianred") +
+  labs(x = "1/S",
+       y = "1/V") +
+  theme_minimal() +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) 
+```
+
+We can also visualize the model under the original scale
+```{r}
+Puromycin_ctrl %>% 
+  ggplot(aes(x = conc, y = rate)) +
+  geom_point() +
+  geom_line(data = fitted_rate, size = 1.2, color = "indianred") +
+  theme_minimal() +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+```
+You might have noticed that although our model estimated Vmax to be 143,
+in the actual data, the rate can go as high as > 150. 
+This is clearly not perfect, but nonetheless it fits the lower concentration data points very well. 
+
+#Exercise one
+Now you have learned how to perform correlation test and how to perform linear regression
+Let's practise that!
+
+We'll practise correlation test first. We'll use the income and child mortality data again.
+This time, we'll use the data from year 2015. 
+```{r}
+data_2015 <- mortality_and_income_and_birth %>% 
+  filter(year == 2015)
+
+head(data_2015)
+```
+
+Visualize the relation between birth and child mortality across countries in year 2015.
+Make your plot here:
+```{r}
+ 
+```
+
+
+Is there a correlation between births per woman and child mortality? Do a correlation test.
+```{r}
+ 
+```
+
+
+What does the correlation coefficient tell you?
+
+
+Between income vs mortality in 1945 and birth vs mortality in 2015, which has a stronger correlation? 
+
+
+
+#Exercise two
+Now let's practice linear regression. We'll use the Puromycin data again.
+However, we will use the drug treated data this time.
+Again, we are looking at the rate of an enzyme across substrate concentrations, 
+but this time the enzyme is treated with the drug puromycin. 
+
+```{r}
+Puromycin_treat <- Puromycin %>% 
+  filter(state == "treated") %>% 
+  mutate(one_over_v = 1/rate) %>% 
+  mutate(one_over_s = 1/conc)
+
+head(Puromycin_treat)
+```
+
+
+##set up the model and interpret the model
+What is the intercept and slope?
+What is the R^2 and what does it mean?
+
+Calculate K and Vmax from the coefficients. 
+How does puromycin affect the K and Vmax of this enzyme? 
+
+
+
+
+
+##visualize the model under the double reciprocal scale and the original scale
+Make your plots here: 
+ 
+
+
+

@@ -1,0 +1,420 @@
+---
+title: "One-way ANOVA and the compact letter display"
+author: "Chenxin Li"
+date: "6/20/2020"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+ 
+#Introduction
+
+If you want to compare the means of two samples, what do you do?
+You use the t-test. 
+
+However, what if you have three or more samples? 
+This workbook goes over one-way ANOVA and Tukey tests, which is designed to compare multiple (>2) samples 
+
+1) How to set up a linear model?
+2) What are the assumptions of linear model and how to check them?
+3) How to interpret an ANOVA table?
+4) How to set up a Tukey test? 
+5) How to interpret the compact letter display? -What it means and what it doesn't mean. 
+
+
+#load packages
+```{r}
+library(emmeans) #three new packages you might need to install them 
+library(multcomp)
+library(multcompView)
+
+library(ggplot2) 
+library(tidyr)
+library(dplyr)
+library(readr)
+library(readxl)
+library(RColorBrewer)
+library(viridis)
+```
+
+#data
+
+This time we'll use the penguins dataset: https://github.com/allisonhorst/palmerpenguins 
+Ref: Gorman KB, Williams TD, Fraser WR (2014) PLoS ONE 9(3): e90081. https://doi.org/10.1371/journal.pone.0090081 
+```{r}
+remotes::install_github("allisonhorst/palmerpenguins") #download the data from Github.
+#you might need to install the "remotes" package
+library(palmerpenguins)
+```
+
+```{r}
+head(penguins)
+str(penguins)
+penguins %>% 
+  group_by(species) %>% 
+  count()
+```
+Looks like it is a table of 344 rows and 7 columns. 
+There are different number of observations in each species. But that's ok. 
+There are three species of penguins in this table. They will be our independent variable. 
+As an example, we'll use bill_length_mm (the length of the beak) 
+
+
+We will compare bill length across the three species 
+and find out who (if anyone) has the longest bill. 
+
+This means species will be the independent variable, 
+and bill length will be the dependent variable. 
+
+#data visualization
+First, it's always a good idea to take a look at the data before you do any analysis
+
+Use what you learned last time to make the best plot possible. Use the format
+
+penguins %>% 
+  ggplot(aes(x = species, y = bill_length_mm)) + 
+  geom_point(aes(fill = ),
+             position = ,
+             alpha = ,
+             size = ,
+             shape = ,
+             color = "") +
+  scale_..._... +
+  labs() +
+  guides() +
+  theme_minial() +
+  theme(...)
+
+You should also use the palette you designed from the first activity 
+
+Make your plot here:
+```{r}
+ 
+```
+
+ 
+We can also take a quick look at the summary statistics  
+```{r}
+length_summary <- penguins %>% 
+  filter(is.na(bill_length_mm) == F) %>% 
+  group_by(species) %>% 
+  summarise(
+    mean = mean(bill_length_mm),
+    var = var(bill_length_mm),
+    sd = sd(bill_length_mm),
+    n = n()
+  )
+
+head(length_summary)
+```
+
+#stat
+
+To perform an ANOVA, the dependent variable must be numeric, 
+and the independent variable must be categorical (or discrete factor). Can you check that?
+
+```{r}
+str(penguins)
+```
+
+Our dependent variable, bill length is indeed numeric "num";
+Our independent variable species is indeed Factor. 
+So all is good. 
+
+##setting up a liner model 
+To perform an ANOVA in R, a good way to start is to set up a linear model first. 
+In a one-way ANOVA, it follows the form lm(y ~ x),
+where lm stands for linear model, 
+y is dependent variable
+x is independent variable 
+
+```{r}
+model_bill.length <- lm(bill_length_mm ~ species, data = penguins) #don't forget to specify which data using data = argument
+```
+
+OK, so now we have a model. 
+If you look into the environment, you'll see the model is a list of bunch of different stuff.
+Let's not worry about what's in it for now. 
+
+##assumtions of ANOVA and how to check them
+ANOVA, like any statistical methods, have a few assumptions
+I'm listing them out first and will explain them one by one
+
+
+1) Independence: Each observation is independent of the other
+2) Normality: the residues (errors) are normally distributed 
+3) Homoscedasticity: equal variance across groups 
+
+
+1) Independence: this means the measurement of one observation does not affect the other
+In this example, we can only assume that's the case. 
+Looking at the data table, there is no indication of not the case. 
+However, for example, if the same animal is measured twice, then it will violate the assumption of independence.
+So in that case, you should first average across the repeated measures. 
+We'll cover more about this when we learn about repeated measures later on. 
+
+
+2)Normality: the residues (errors) are normally distributed
+Note: this is different from "the data is normally distributed". 
+What this actually means is after the means are computed, 
+the ERROR around the means (the residues) have to be normally distributed. 
+The sample means don't have to be normally distributed.
+
+How do I check that?
+```{r}
+plot(model_bill.length, which = 2)
+```
+
+This is called a normal qq plot. Or normal quantile-quantile plot.
+The quantiles of a normal distribution is plotted on x axis
+The quantiles of the model is plotted on the y axis 
+If the residues are normally distributed, the dots will fall on a straight line across the diagonal. 
+Looks pretty good. In this model, the residues are normally distributed. 
+
+
+If you are not sure, you can simulate normqq plots from a few normal distribution and check for yourself
+```{r}
+rnorm(mean = 0, sd = 1, n = nrow(penguins)) %>% qqnorm() 
+```
+
+rnorm() generates normally distributed randon numbers. 
+the n = nrow(penguins) argument generate the same number of data points as in penguins data
+everytime you run the above chuck the output will be different,
+because the numbers are randomly generated
+run it several times to have an idea of what normally distributed data should look like. 
+
+
+3) The last assumption is homoscedasticity: equal variance across groups.
+This may seen a bit abstract, but in fact it is very straightforward for one-way ANOVA.
+In this example, we have three groups, that is, three species.
+And equal variance would be the three species have roughly the same variance.
+How do I check that?
+
+```{r}
+plot(model_bill.length, which = c(1, 3))
+```
+
+
+The first graph is called residues vs. Fitted.
+It is plotting the means of groups (in this case species) on x axis, and
+the spread of errors on the y axis. 
+If the variances are equal, you should see roughly same amount of spread across the line. 
+It looks fine to me.
+
+The second graph is called scale location
+Again x axis is still the means of groups, 
+but the y axis is now square root of absolute values of errors. 
+If the variances are equal, you should see roughly a flat line. 
+It looks more or less fine to me. 
+
+
+Perhaps the last thing to check is outliers. 
+In this case, when you plot the data, you saw there was no outliers.
+
+So great! We are all clear to do an ANOVA!
+
+##how to interpret an ANOVA table
+```{r}
+anova(model_bill.length)
+```
+
+This is the output of an ANOVA. It's a table.
+How do I read this? 
+
+In the applied sense, the most inportant number is the F value. 
+The F value is computed by mean sum of squares of dependent variable (species in this case) 
+over the mean sum of squares of residues, so 3597/8.8 = 410. 
+
+The F value can be (loosely) understood as the variance between groups over the variances within group. 
+The null hypothesis is F = 1. 
+This means there is equal variation between groups and within groups. 
+
+In this example we have F = 410, which is >> 1. 
+
+The p value, or Pr(>F) is the probability of finding F values more extreme than observed F value, if F = 1. 
+In this case we have F = 410, if F were equal to 1, the probability of finding F > 410 is < 2.2e-16.
+So very small.
+Thus, we should reject the null hypothesis of F = 1. 
+
+This means the means of different species are different.
+
+##how to do Tukey test
+
+ANOVA has told us the means of different penguin species are different.
+But it didn't tell us which one is the greatest.
+To find that out, we need to use Tukey test
+
+```{r}
+estimate_bill <- emmeans(model_bill.length, pairwise ~ species)
+```
+
+The emmeans function means estimate marginal means. 
+The underlying math is actually pretty complex, 
+but for the applied sense, it can be loosely understood as estmate the means of different groups 
+
+In the emmeans function, you will call which model you want to estimate, in this case model_bill.length
+You will call what type of comparisons we want to make, and usually it is pairwise, meaning all pairwise contrasts
+Lastly, you will call which variable you want to compare across. In this case species. 
+
+
+We estimated the means, now we can compare the means
+```{r}
+estimate_bill$contrasts
+```
+The is the output of Tukey tests.
+Again a table. 
+
+The contrast column should be self-explanatory: what is compared to what?
+The estimate column is the differences of means. 
+The SE column is standard error of differences of means.
+The df column is degrees of freedom. 
+
+In the most applied sense, the most important numbers are the t.ratio. 
+t ratio is (the difference in mean)/SE
+For example, in row 1, t = -10.04/0.432 = -23  
+The null hypothesis is t = 0, meaning no difference in mean. 
+
+The p.value means if t = 0, given the degrees of freedom, 
+what is the probability of getting a t.ratio more extreme than what's observed? 
+
+For example, in row 1, we have t = -23, if t were to be 0, the probability of finding t < -23 is <0.0001. 
+Very small.
+So we should reject the null hypothesis. 
+
+Keep in mind that Tukey tests give you the adjusted P values for multiple comparisons.
+In this example, "P value adjustment: tukey method for comparing a family of 3 estimates "
+What does this mean? 
+
+
+Because we have three species, we have three comparisons, they are:
+1) Adelie - Chinstrap,  
+2) Adelie - Gentoo, and 
+3) Chinstrap - Gentoo
+
+Under a p = 0.05 cutoff, if each comparison has an type I error rate of 0.05, 
+in three tests you have a total type I error rate of 0.05 * 3 = 0.15.
+Keep in mind that when you run a Tukey tests, R will take care of that, and the p values are already adjusted,
+so that the total type I error rate of your analysis is still 0.05. 
+
+
+So what do we learn from the table?
+  -The means of the three species are all significantly different from each other.  
+
+##How do I report the resuls of a Tukey test?
+You can directly report the contrast table. That's fine. 
+However, there is another way, that is "compact letter display". 
+The compact letter display method is used in scientific publications a lot.
+It's important that you know what it means and what it doesn't mean. 
+
+You will call the cld function, and put in the emmeans as the argument
+```{r}
+cld(estimate_bill$emmeans, Letters = letters)
+```
+
+How do I interpret this output? 
+The emmean column is the estimated means.
+The lower.CL and upper.CL are the confidence limits; together they mark the 95% confidence interval of the mean.
+Lastly, there is the ".group" column - how to interpret it?
+
+If two rows share the same letter, it means the means of that two groups are not statistically different. 
+In this example, each specices has their own unique letter, 
+so the means of the species are all significantly different from each other, consistent with what the contrasts told us.
+
+We can conclude that the species Chinstrap has the longest bill, and the species Adelie has the shortest. 
+
+As a practice, let's try a hypothetical example. In this cld, we have
+
+| sample1       |a  |  
+| sample2       |ab |  
+| sample3       | b |  
+| sample4       |  c|  
+
+What does this mean?
+
+It means:
+The means of sample1 and sample2 are not significanly different, because they both share the letter "a".
+The means of sample2 and sample3 are not significantly different, because they both share the letter "b.
+The means of sample4, however, is significantly different from sample1, 2 and 3, because it has the unique letter "c".
+
+Be VERY CAREFUL when you interpret a cld output. 
+Two samples sharing the same letter does NOT mean their means are equal!
+It only means their means are not significantly different in this experiment. 
+Their means might actually be different; it's just the experiment didn't have enough power to detect that difference.
+
+
+
+##publication quality reporting
+Now let's make a pretty plot and include the results of statistics as well 
+```{r}
+#I'm going to use my wisteria palette
+wisteria <- c("grey65", "burlywood3", "khaki2", "plum1", "lightcyan2", "cornflowerblue", "slateblue3")
+```
+
+
+```{r}
+penguins %>% 
+  ggplot(aes(x = species, y = bill_length_mm)) +
+  geom_boxplot(aes(fill = species),            #You can make a box plot too!
+               alpha = 0.8, width = 0.7) +            
+  annotate(geom = "text",     #you can use the annotate funtion to add the letter grouping of cld
+           label = c("a", "c", "b"),   
+           x = c(1, 2, 3),             #you can also do this in PPT or illustrator or Inkscape 
+           y = c(48, 60, 57),   
+           size = 5, fontface = "bold") +
+  scale_fill_manual(values = wisteria[c(1, 3, 6)]) +
+  labs(x = "Species",
+       y = "Bill length") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+```
+So this will be a publication quality graph. 
+
+As a rule of thumb, in each group, if n < 10, then you just use jittered dots.
+If n > 10 but < 100, it's a good idea to show the boxplot.  
+If n > 100 per group, then just use the box plot with no dots. It's too many dots to look at.  
+
+
+#Exercise 
+Now try it out yourself!
+Compare the bill width across the three species and find out which one has the widest bill. 
+
+##visualize the data
+```{r}
+
+```
+
+
+##set up the linear model and check assumptions
+```{r}
+
+```
+
+##run ANOVA and interpret the ANOVA table
+```{r}
+
+```
+
+##run Tukey tests and interpret the contrast
+```{r}
+
+```
+
+##report the compact letter display and interpret the cld output
+```{r}
+
+```
+
+
+
+ 
+
+
+
+
+
+

@@ -1,0 +1,475 @@
+---
+title: "Logistic Regression"
+author: "Chenxin Li"
+date: "6/21/2020"
+output:
+  html_notebook: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Introduction
+We talked about linear regression and polynomial regression. 
+This time we are going to talk about an extention of linear regression - logistic regression
+We will cover:
+
+1) When to perform a logistic regression?
+2) How to set up a logistic regression?
+3) How to interpret a logsitic regression?
+
+
+#load packages
+```{r}
+library(rsq)  # a new package
+
+library(ggplot2) 
+library(tidyr)
+library(dplyr)
+library(readr)
+library(readxl)
+library(RColorBrewer)
+library(viridis)
+```
+
+#When to perform a logistic regrssion and why? 
+Not everything in nature occurs in a linear manner. 
+If you try to use a linear regression to describe non-linear trend, 
+you will get faulty interpretations. 
+
+A very common trend in nature is the logistic curve. 
+The logistic curve has many applications in population growth, viral infections, and even PCR. 
+
+Let's use an example. 
+Here I was doing a qPCR. In qPCR, a dsDNA dye was added to the reaction mix. The dye is called SYBR green.
+SYBR green binds dsDNA and fluoresces. As more PCR cycle occurred, more dsDNA was made, and more flurorescence.
+Thus you can use the fluorescence to track the concentration of PCR products. 
+
+```{r}
+qPCR <- read_delim("data/SYBR_Green.txt", delim = "\t")
+head(qPCR)
+```
+
+In this table, each row is a PCR cycle. We have 36 rows, so 36 PCR cycles. 
+Each column is a PCR reaction. I was doing the experiment in a 96-well plate, so the data are spreat out in 96 columns.
+
+Let's visualize the data first
+```{r}
+qPCR %>% 
+  gather("well", "fluorescence", 3:98) %>% 
+  filter(fluorescence >= 0) %>%   #remove negative fluorescence - that's just noise or artefact 
+  ggplot(aes(x = Cycle, y = fluorescence)) +
+  geom_line(aes(group = well, color = well), size = 1, alpha = 0.8) +
+  scale_color_viridis_d() +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(panel.grid = element_line(color = "grey60")) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) 
+```
+
+This is the raw data of a qPCR experiment. Look at these nice curves. 
+These are clearly non-linear, so if you try to fit a straight line, you would be wrong. 
+Each sample starts out as an exponential - fluorescenece increases exponentially as cycle number increaes.
+However, at some point, the increase of flurescence slows down, and eventually flattens (we call it saturation). 
+
+Samples with higher template concentration shoots up first and reaches saturation first.
+Samples with no temple will be flat lines. 
+
+This is a clear example of logistic curve. 
+Logistic curves start out as an exponential, but slow down at some point, and eventually stop increasing.  
+
+Logistic curves have the following equation:
+Y = Ymax/ (1 + e^-(ax + b)) 
+
+Ymax is the Y value where the curve reaches saturation. 
+"a" determines the steepness of the curve, i.e. how fast the curve shoots up.
+"b" determines how far away the curve is from the Y axis, i.e. the horizontal location of the curve. 
+The reverse function for logistic is logit. 
+
+The logit and logistic functions are defined as the following:
+```{r}
+logit <- function(p){log(
+  p / (1-p)
+)}
+
+logistic <- function(x){
+  1/(1 + exp(-x))
+}
+```
+We can also visualize the two functions. 
+
+```{r}
+data.frame(
+  x = seq(-5, 5, by = 0.1)
+) %>% 
+  mutate(y = logistic(x)) %>% 
+  ggplot(aes(x = x, y = y)) +
+  geom_hline(yintercept = 0, size = 1.2, color = "grey50") +
+  geom_vline(xintercept = 0, size=  1.2, color = "grey50") +
+  geom_line(size = 1.2) +
+  theme_minimal() +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+```
+You can see the logistic curve really captures the shape of the qPCR curves. 
+
+```{r}
+data.frame(
+  p = seq(0.001, 0.999, by = 0.001)
+) %>% 
+  mutate(y = logit(p)) %>% 
+  ggplot(aes(x = p, y = y)) +
+  geom_hline(yintercept = 0, size = 1.2, color = "grey50") +
+  geom_vline(xintercept = 0, size=  1.2, color = "grey50") +
+  geom_line(size = 1.2) +
+  theme_minimal() +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+```
+And you can see and the reverse function of logistic, the logit curve is flipping the x and y axis of the logistic curve. 
+
+The logistic curve is used a lot in modeling population growth. 
+At the exponential phase, the pupulation increases rapidly.
+However, as resources in the habitat get depleted, the rate of growth slows down.
+When resources become scarce, the population size stops growing. 
+Ecologists call that "the population has reached the carrying capacity of its habitat". 
+
+The same concept can be applied to PCR.
+At the exponential phase, the PCR product increases rapidly, doubling every PCR cycle.
+However, as substrates (primers and dNTPs) become depleted, the rate of reaction slows down.
+As the end, all primers and/or dNTPs are used up, and the PCR products stop increasing.
+Molecular biologist call that "the PCR has reached saturation". 
+
+Lastly, any variables in the range 0 - 1 can be better modeled by logistic regression than linear regression. 
+Near 0 or 1, the curve will be in its flat regions, and in between 0 and 1, the curve will be in its exponential region. 
+
+#How to set up a logistic regression
+As an example, let's fit a curve for the well A6 of my qPCR experiment,
+so our formula will be A6 ~ Cycle. 
+
+To extend linear model to non-linear curves, the linear model have to be extended to a generalized linear model.
+We will use generalized linear model function - glm(). 
+The underlying mathematics of glm is pretty complex, so we'll focus on the applications, not the theory. 
+
+The glm() function has many applications, but to specify a logistic regression, 
+we need to specify glm(... , family = binomial(link = "logit")). 
+
+##find Ymax
+First we need to find Ymax. 
+It turns out logistic regression only works when the response variable is between 0 and 1.
+If the response variable is not between 0 and 1, we need to scale it down to 0 and 1 first. 
+This can be easily achieved by dividing every Y value by the maximum Y (Ymax). 
+
+```{r}
+qPCR_new <- qPCR %>% 
+  mutate(A6_scaled = A6/max(A6))
+```
+
+##using the glm() function
+
+```{r}
+model_A6 <- glm(A6_scaled ~ Cycle, data = qPCR_new, family = binomial(link = "logit"))
+```
+The above line sets up the regression model. 
+Note that "family = binomial" actually referrs to the fact that now the scale is between 0 and 1.
+And "0 vs. 1" is called "binomial".
+'link = "logit"', referres to the fact that the inverse function of logistic is logit. 
+
+Y = logistic(ax + b) <=> logit(Y) = ax + b. 
+Where logit(Y) = log(Y/1-Y),
+where Y is the scaled response variable (between 0 and 1). 
+
+
+
+
+
+#How to interpret a logistic repression
+Again we will use the summary() function to pull out the coefficients
+```{r}
+summary(model_A6)
+```
+
+Looks like the "intercept" is -3.79, and the "slope" for cycle is 0.3486. 
+This means logit(Y) = 0.3486 * Cycle - 3.7921. 
+Or Y = 1/(1 + e^-(0.3486 * Cycle - 3.7921)). 
+
+You should look at the z values. The null hypothesis is z = 0. 
+The farther z is away from 0, the less likely the null hypothesis is true. 
+The p-value for both parameters are small, so we can conclude that 
+finding these observed parameters is beyond chance. 
+
+To find out the goodness-of-fit in a logistic regression, we will need the rsq() function
+```{r}
+rsq(model_A6)
+```
+We have a R^2 of 0.99. Which means 99% of the variation in the data is explained by the model. Exellent. 
+
+
+#Visualize the model
+It's always a good idea to visualize the model before we draw conclusions from it.
+
+```{r}
+Ymax_A6 <- max(qPCR$A6)
+
+model_A6_fitted <- data.frame(
+  Cycle = seq(1, 36, by = 0.1)
+) %>%
+  mutate(A6 = Ymax_A6 / (1 + exp(-(0.3486 * Cycle - 3.79)))) 
+```
+
+```{r}
+qPCR %>% 
+  ggplot(aes(x = Cycle, y = A6)) +
+  geom_point(size = 2, alpha = 0.8) +
+  geom_line(data = model_A6_fitted, size = 1.2, color = "indianred1") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(panel.grid = element_line(color = "grey60")) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+```
+That looks great. 
+
+
+
+#predict intermediate values
+An important number in logistic curve is the inflection point. 
+The inflection point defines where the curve goes from increasing rate to decreasing rate. 
+
+when x < inflection point, the curve is in its exponential phase, and the shape is bending upwards (concave).
+When x > inflection point, the curve has left its exponential phase and slowing down, 
+and the shape is bending downwards (convex). 
+
+This is a very important number in epidemiology. 
+In a viral epidemic, the number of infected cases can be modeled by a logistic curve.
+Before the infection point, we know we are going to get more cases every day.
+After the infection point, we know are going get less cases every day, 
+and the total number of cases will soon stop increasing. 
+So being able to know where the inflection point is will help guide how to distribute efforts in an epidemic. 
+
+
+Let's find the inflection point of our model.
+The inflection point is defined the second derivative of the function = 0. f''(x) = 0, and solve for x. 
+
+We have Y = 1/(1 + e^-(0.3486 * Cycle - 3.7921)). If you look at our curve, that should happen between 10 and 12.
+
+
+If you don't remember calculus, that's ok,
+because the x value for the inflection point of y = Ymax/(1 + e^-(ax + b)) is as simple as -b/a... 
+Don't believe me? Try out the math yourself. 
+
+```{r}
+#inflection point x = 
+3.7921/0.3496
+```
+We get 10.85.
+And it is between 10 and 12. See, it works. 
+
+If you plug it in, you will find the y value at the inflection point is Ymax/2. 
+
+```{r}
+#Y value at inflection point
+Ymax_A6 /(1 + exp(-(0.3486 * 10.85 - 3.7921)))
+```
+
+```{r}
+(Ymax_A6 /(1 + exp(-(0.3486 * 10.85 - 3.7921)))) / Ymax_A6  
+```
+
+That gives us ~1/2! 
+
+Note that this is a very powerful prediction.
+In an on going epidemic, we don't know what the maximal number of cases will be.
+However, using existing data, we can guess the inflection point.
+The predicted total number of cases will be twice the amount of cases at inflection point 
+
+
+#Logistic regression on population growth 
+Let's use the COVID19 data from WHO as an example. 
+https://covid19.who.int/ 
+These data were download on 6/19/2020 
+```{r}
+covid19_6_19_2020 <- read_csv("data/2020_6_19 WHO-COVID-19-global-data.csv") 
+head(covid19_6_19_2020)
+```
+This is already a tidy dataset. Each row is a day. For the sake of this discussion, we'll use the data from Germany.
+
+```{r}
+germany <- covid19_6_19_2020 %>% 
+  filter(Country == "Germany") %>% 
+  filter(Cumulative_cases >= 50) %>% #only taking days that has at least 50 reported cases 
+  mutate(days = 1:nrow(.))
+
+head(germany)
+```
+I made a new column called "days" to convert "Date_reported" to the numberical number of days since there were 50 cumulative cases.
+Usually people don't start with 0 cases. Instead people start with ~50 cases, by which it would be consider an outbreak or epidemic. 
+We can visualize the data first. 
+
+```{r}
+germany %>% 
+  ggplot(aes(x = days, y = Cumulative_cases)) +
+  geom_point(size = 2, alpha = 0.8) +
+  geom_vline(xintercept = 37, size = 1.2, alpha = 0.8) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(panel.grid = element_line(color = "grey60")) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) 
+```
+Here we have days on the x axis and cumulative cases on y axis. The shape of the curve really looks like a logistic curve. 
+I added a vertical line to where the inflection point is. 
+It looks like around day 37 the curve went from exponential to starting to slow down. 
+
+Another way to find the inflection point is to plot daily new cases against days. 
+```{r}
+germany %>% 
+  ggplot(aes(x = days, y = New_cases)) +
+  geom_point(size = 2, alpha = 0.8) +
+  geom_vline(xintercept = 37, size = 1.2, alpha = 0.8) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(panel.grid = element_line(color = "grey60")) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) 
+```
+We can see that around the inflection point, we have peak daily cases. 
+This is because at the inflection point, the cumulative cases went from accelerating to decelerating. 
+As a result, the daily new cases is highest at the inflection point. 
+
+
+
+Let's say we want to model a population (in this case viral infections) that has not reaches its saturation. 
+And we want to project the growth of the population to the near future. How can we do that? 
+As the example, we will be using only the first half of the Germany data. 
+We have ~120 days of data when this was download, so let's take the first 60 days (since 50 cases) for this example.  
+
+```{r}
+germany_first_half <- germany %>% 
+  filter(days < 60)
+
+head(germany_first_half)
+```
+
+First of all, you'll have to find Ymax. In this case, the population has reached its inflection point. 
+So the projected Ymax will be the cumulative case number at the day of inflection point * 2.
+From the graph we found that the inflection point occurred around day 37.
+```{r}
+germany_first_half %>% 
+  filter(days == 37)
+```
+At day 37 there were 85778 cumulative cases. 
+So the projected Ymax will be 85778 * 2 = 171556 
+Now we can use this projected Ymax to scale down our cumulative cases
+
+```{r}
+germany_first_half <- germany_first_half %>%  
+  mutate(Ymax = 85778 * 2) %>% 
+  mutate(case_scaled = Cumulative_cases/Ymax)
+
+head(germany_first_half)
+```
+Now we have the cases_scaled column, and we are ready to run a logistic regression. 
+
+You might ask what should we do if the population has not reached its inflection point. 
+The short answer is "it's hard". Before the inflection point, the logistic curve looks like an exponential. 
+And it's very difficult to tell what the Ymax would become. 
+If you are an epidemiology modeller, you will have to make some assumptions. 
+For example, you will assume a worse case scenario, (say 70% of the population will get infected), 
+as well as a best case scenarior, (such as 10% of the population gets infected). Then you fit a model for both cases respectively. 
+The reality will probably fall somewhere between the two models.  
+
+```{r}
+model_germany <- glm(case_scaled ~ days, data = germany_first_half, family = binomial(link = "logit"))
+summary(model_germany)
+rsq(model_germany)
+```
+It looks like our equation will be:
+Cummulative cases = Ymax * logistic(0.132 * days - 5.13) or 
+Cummulative cases = Ymax / (1 + exp(-(0.132 * days - 5.13))) 
+
+The R^2 is 0.99, or 99% of the variance in the first half of the data is explained by the model. Excellent. 
+
+Now let's see how well our model fits the actual data. 
+```{r}
+85778 * 2 #projected Ymax
+```
+
+```{r}
+germany_fitted <- data.frame(
+  "days" = seq(1, nrow(germany), by = 1)
+) %>%
+  mutate(Cumulative_cases =  171556/ (1 + exp(-(0.132 * days - 5.13))))
+
+head(germany_fitted)
+```
+
+```{r}
+germany %>% 
+  ggplot(aes(x = days, y = Cumulative_cases)) +
+  geom_point(size = 2, alpha = 0.8) +
+  geom_vline(xintercept = 60) +
+  geom_line(data = germany_fitted, size = 1.2, color = "indianred1") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(panel.grid = element_line(color = "grey60")) +
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) 
+```
+You can see that up to day 60 (vertical line), which marks first half of the data, the model fits the data well. 
+This is not surprising, as the R^2 value is 0.99. 
+However, this is clearly not perfect. As you can see the model doesn't fit the later half of the data as well.
+It underestimates cases after around day 75. 
+This is because the later half of the data were not used to train the model.
+This is also because the actual data were not symmertrical around the inflection point. 
+Projections are never perfect, but I do think this example serves as a good exercise. 
+That being said, if you are interested in epidemiological modelling, you should consider taking more advanced courses in that area. 
+
+
+#Exercise
+Now you have learned how to run a logistic regression.
+It's time to practise. 
+
+This time we'll use the data from qPCR well A7.
+
+
+##Fit a logistic regression model for well A7
+1) What is Ymax for A7? 
+```{r}
+
+```
+
+
+
+2) What is the equation for A7? What the R^2 and what does it mean?
+```{r}
+
+```
+
+
+
+3) Visualize your model. Make your plot here:
+```{r}
+
+```
+
+
+
+4) Find the inflection point for A7. 
+```{r}
+
+```
+
+
+
+
+
+
+

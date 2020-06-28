@@ -1,0 +1,835 @@
+---
+title: "Formatting ggplots"
+author: "Chenxin Li"
+date: "6/20/2020"
+output:
+  html_notebook 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Introduction
+
+The ggplot package in R is a powerful plotting tool. 
+It's easy to use, but you can make complex plots with rather simple syntax. 
+
+"gg" stands for graphical grammar - 
+It means different layers of objects and elements are layered on top of the previous to generate the plot.
+You can find the ggplot cheatsheet here: https://rstudio.com/wp-content/uploads/2016/11/ggplot2-cheatsheet-2.1.pdf 
+
+This workbook will go over different features of ggplot
+1) geoms
+2) scales
+3) guides
+4) themes 
+5) facets
+
+...and how to make the clearest, prettiest ggplot possible. 
+
+#load packages
+You might need to install some of these packages 
+```{r}
+library(ggplot2) 
+library(tidyr)
+library(dplyr)
+library(readr)
+library(readxl)
+```
+
+
+#data 
+We'll use the R built-in dataset ToothGrowth. 
+This dataset is about different doses of vitamin C on tooth growth of guinea pigs
+Ref: Crampton, E. W. (1947). The Journal of Nutrition, 33(5), 491–504. doi: 10.1093/jn/33.5.491.
+```{r}
+head(ToothGrowth)
+str(ToothGrowth)
+```
+It has 60 rows and 3 columns. 
+Two types of supp: OJ and VC
+Looks like len is tooth length and the dependent variable. 
+
+#data visualization 
+Let's make the most basic plot first
+
+##coordinate system 
+Dose on X, length on Y, color as supp 
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  geom_point(aes(color = supp)) 
+```
+I prefer to type out the data frame first, then pipe into ggplot(). It's more readable this way.  
+Thus ToothGrowth %>% ggplot(...). 
+
+The row ggplot(aes(x = ..., y = ...)) specifies what are the x and y axis. 
+Then you add a new layer (in this case points) by using + 
+and in a new line you write geom_poits(). "Geom" stands for geommetric object. 
+Inside geom_point() you want to color by supp, so you write aes(color = supp). 
+
+
+This is not bad... Now let's use a custom palette called "wisteria". It's just a set of color names.  
+
+##adjust geom color/fill
+```{r}
+wisteria <- c("grey65", "burlywood3", "khaki2", "plum1", "lightcyan2", "cornflowerblue", "slateblue3")
+```
+
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  geom_point(aes(color = supp)) +
+  scale_color_manual(values = wisteria[c(1, 7)]) #calling the 1st and 7th color 
+```
+
+##change axis and legend labels - labs() 
+Now I want to change the axis and legend titles. How do I do that?
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  geom_point(aes(color = supp)) +
+  scale_color_manual(values = wisteria[c(1, 7)]) +
+  labs(x = "dose",              #the labs option allow you to change axis and legend labels. 
+       y = "teeth length",
+       color = "supplement")
+```
+
+You can see the dots are overlapping each other. How do I make them spread out a bit horizontally?
+##adjust geom positions
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  geom_point(aes(color = supp), 
+             position = position_jitter(0.1),   #horizontal spread of 0.1
+             alpha = 0.8,             #20% transparent. When dots do overlap, we can tell
+             size = 3) +    #make them larger and easier to see 
+  scale_color_manual(values = wisteria[c(1, 7)]) +
+  labs(x = "dose",              
+       y = "teeth length",
+       color = "supplement")
+```
+
+This is great, but I can make it even better by adding border to each dots. How to do that?
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  geom_point(aes(fill = supp), #note that change to fill = supp
+             position = position_jitter(0.1),   
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, #shape = 21 gives you open circle
+             color = "black") +    #black border around each dot
+  scale_fill_manual(values = wisteria[c(1, 7)]) + #change to scale_fill here 
+  labs(x = "dose",              
+       y = "teeth length",
+       fill = "supplement") #change to fill = here
+```
+Now we're absolutely clear where each dot is. 
+
+But there is a problem...
+Note that when you use jitter, the horizontal spread is completely random.
+This means everytime you run the code, the position of the dots are different. 
+How do I fix that? 
+You can add a "seed" argument in the position_jitter function, that will make it reproducible
+
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),   #added seed = 666 here
+                                                    #doesn't matter which seed number you use
+                                                    #as long as it's the same number the pattern will be the same
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") +    
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  labs(x = "dose",              
+       y = "teeth length",
+       fill = "supplement")
+```
+
+##stat_summary - very powerful visualization tool 
+
+Let's say I want a curve for each supplement, what should I do? 
+Your first reaction is geom_line, no? 
+Unfortunately, that's not the right answer. 
+geom_line will try to connect each dot, but what we want is try to connect the MEANS of each dose for each supp. 
+We'll use stat_summary instead 
+
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  stat_summary(geom = "line",  #draw a line
+               fun.y = mean, #summarise by averaging, thus mean
+               aes(group = supp, color = supp), #one line per supp, color by supp
+               size = 1.2) + 
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") +    
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  labs(x = "dose",              
+       y = "teeth length",
+       fill = "supplement")
+```
+well, there's a problem. The lines are not the same color as the dots. 
+That's because the line is controlled by scale_color, the dots are controlled by scale_fill
+It's easy to fix 
+
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  stat_summary(geom = "line",  
+               fun.y = mean,  
+               aes(group = supp, color = supp),  
+               size = 1.2) + 
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") +    
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  scale_color_manual(values = wisteria[c(1, 7)]) + #add scale_color_manual here
+  labs(x = "dose",              
+       y = "teeth length",
+       fill = "supplement",
+       color = "supplement") #change the color legend title here 
+```
+Better! Note that since the title and scales of fill and color are the same, ggplot merged them in the legend. 
+
+Now I want to add errorbars to the line, how do I do that?
+We'll use stat_summary again, but this time instead of geom = "line", we'll do geom = "errorbar"
+Beside geom = "errorbar", another option is geom = "linerange"
+linerange is errorbar without the horizontal bars
+
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  stat_summary(geom = "line",  
+               fun.y = mean,  
+               aes(group = supp, color = supp),  
+               size = 1.2) + 
+  stat_summary(geom = "errorbar",  #draw errorbars (another option is geom = "linerange")
+               fun.data = mean_se, #mean_se specifies the errorbar to be based on standard error (se)
+               aes(group = supp), #one errorbar per dose per supp
+               width = 0.1) +   #make the bar narrower 
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") +    
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  scale_color_manual(values = wisteria[c(1, 7)]) + 
+  labs(x = "dose",              
+       y = "teeth length",
+       fill = "supplement",
+       color = "supplement")  
+```
+Here is another option to show the errorbar 
+stat_summary(geom = "ribbon")
+
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  stat_summary(geom = "line",  
+               fun.y = mean,  
+               aes(group = supp, color = supp),  
+               size = 1.2) + 
+  stat_summary(geom = "ribbon",  #draw ribbons around line
+               fun.data = mean_se, 
+               aes(group = supp,
+                   fill = supp), 
+               alpha = 0.5) +   #make ribbons more transparent 
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") +    
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  scale_color_manual(values = wisteria[c(1, 7)]) + 
+  labs(x = "dose",              
+       y = "teeth length",
+       fill = "supplement",
+       color = "supplement")
+```
+I like the ribbon better. 
+But feel free to use errorbar or linerange if you prefer those 
+
+##adjust legends and axis
+
+Note that in the experiment, there's never a dose = 1.5.
+We can turn off the x axis tick mark of 1.5 by using scale_x
+(You can adjust y axis using scale_y_... as well, if you ever need to)
+
+BTW, if you ever need to log10 transform axis, you can do scale_x_log10 or scale_y_log10 
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  stat_summary(geom = "line",  
+               fun.y = mean,  
+               aes(group = supp, color = supp),  
+               size = 1.2) + 
+  stat_summary(geom = "ribbon",   
+               fun.data = mean_se, 
+               aes(group = supp,
+                   fill = supp), 
+               alpha = 0.5) +   
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") +    
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  scale_color_manual(values = wisteria[c(1, 7)]) + 
+  scale_x_continuous(breaks = c(0.5, 1, 2)) + #use scale_x_continuos here because x is continuos
+                                              #if you have discrete x, you will need scale_x_discrete
+  labs(x = "dose",              
+       y = "teeth length",
+       fill = "supplement",
+       color = "supplement")
+```
+Now the x = 1.5 mark is turned off. 
+
+I realized the color and fill scales are redundant, so we can turn off one of them.
+To do so, we'll use guides. 
+
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  stat_summary(geom = "line",  
+               fun.y = mean,  
+               aes(group = supp, color = supp),  
+               size = 1.2) + 
+  stat_summary(geom = "ribbon",   
+               fun.data = mean_se, 
+               aes(group = supp,
+                   fill = supp), 
+               alpha = 0.5) +   
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") +    
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  scale_color_manual(values = wisteria[c(1, 7)]) + 
+  scale_x_continuous(breaks = c(0.5, 1, 2)) +  
+  labs(x = "dose",              
+       y = "teeth length",
+       fill = "supplement",
+       color = "supplement") +
+  guides(color = F) #turn off color legend using color = F 
+```
+##adjust themes
+The default theme is nice, but it's not the best
+You can use the theme() function to build your own theme
+
+Let's remove all the theme element first using theme_minimal()
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  stat_summary(geom = "line",  
+               fun.y = mean,  
+               aes(group = supp, color = supp),  
+               size = 1.2) + 
+  stat_summary(geom = "ribbon",   
+               fun.data = mean_se, 
+               aes(group = supp,
+                   fill = supp), 
+               alpha = 0.5) +   
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") +    
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  scale_color_manual(values = wisteria[c(1, 7)]) + 
+  scale_x_continuous(breaks = c(0.5, 1, 2)) +  
+  labs(x = "dose",              
+       y = "teeth length",
+       fill = "supplement",
+       color = "supplement") +
+  guides(color = F) +
+  theme_minimal() 
+```
+Theme minimal is the minimalistic theme. It turns off most theme elements. 
+But you can add elements that you want back.
+
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  stat_summary(geom = "line",  
+               fun.y = mean,  
+               aes(group = supp, color = supp),  
+               size = 1.2) + 
+  stat_summary(geom = "ribbon",   
+               fun.data = mean_se, 
+               aes(group = supp,
+                   fill = supp), 
+               alpha = 0.5) +   
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") +    
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  scale_color_manual(values = wisteria[c(1, 7)]) + 
+  scale_x_continuous(breaks = c(0.5, 1, 2)) +  
+  labs(x = "dose",              
+       y = "teeth length",
+       fill = "supplement",
+       color = "supplement") +
+  guides(color = F) +
+  theme_minimal() +
+  theme(axis.line = element_line(size = 1.2)) +  #add axis line back
+  theme(text = element_text(size = 12, color = "black", face = "bold")) + #make text clearer and darker
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) 
+```
+
+The white backgroung and black lines really put the data forward and emphasize the data
+
+Now notice the legend is on the right and it is taking up space?
+You can move it into the plot using theme(legend.position = )
+ 
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  stat_summary(geom = "line",  
+               fun.y = mean,  
+               aes(group = supp, color = supp),  
+               size = 1.2) + 
+  stat_summary(geom = "ribbon",   
+               fun.data = mean_se, 
+               aes(group = supp,
+                   fill = supp), 
+               alpha = 0.5) +   
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") +    
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  scale_color_manual(values = wisteria[c(1, 7)]) + 
+  scale_x_continuous(breaks = c(0.5, 1, 2)) +  
+  labs(x = "dose",              
+       y = "teeth length",
+       fill = "supplement",
+       color = "supplement") +
+  guides(color = F) +
+  theme_minimal() +
+  theme(legend.position = "bottom") + #move legend to bottom
+  theme(axis.line = element_line(size = 1.2)) + 
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) 
+```
+
+The more fancy thing is to move legend inside the graph area. How to do that?
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  stat_summary(geom = "line",  
+               fun.y = mean,  
+               aes(group = supp, color = supp),  
+               size = 1.2) + 
+  stat_summary(geom = "ribbon",   
+               fun.data = mean_se, 
+               aes(group = supp,
+                   fill = supp), 
+               alpha = 0.5) +   
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") +    
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  scale_color_manual(values = wisteria[c(1, 7)]) + 
+  scale_x_continuous(breaks = c(0.5, 1, 2)) +  
+  labs(x = "dose",              
+       y = "teeth length",
+       fill = "supplement",
+       color = "supplement") +
+  guides(color = F) +
+  theme_minimal() +
+  theme(legend.position = c(0.8, 0.2)) + #this is a tricky command, and you have to manually adjust it
+                                         #c(1, 1) means upper right corner of the graph area,
+                                         #c(1, 0) means the lower right corner of the graph area
+  theme(axis.line = element_line(size = 1.2)) + 
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+```
+Now the legend is in the graph area.
+This is nice because now the legend doesn't take up extra space
+
+One last adjustment you can do is change the number of rows and column of the legend.
+Now we have two rows, one column. What if I want one row and two columns? 
+
+We'll use guides again. 
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  stat_summary(geom = "line",  
+               fun.y = mean,  
+               aes(group = supp, color = supp),  
+               size = 1.2) + 
+  stat_summary(geom = "ribbon",   
+               fun.data = mean_se, 
+               aes(group = supp,
+                   fill = supp), 
+               alpha = 0.5) +   
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") +    
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  scale_color_manual(values = wisteria[c(1, 7)]) + 
+  scale_x_continuous(breaks = c(0.5, 1, 2)) +  
+  labs(x = "dose",              
+       y = "teeth length",
+       fill = "supplement",
+       color = "supplement") +
+  guides(color = F) +
+  guides(fill = guide_legend(nrow = 1, ncol = 2)) + # set fill legend to 1 row 2 columns. 
+  theme_minimal() +
+  theme(legend.position = c(0.8, 0.2)) + 
+  theme(axis.line = element_line(size = 1.2)) + 
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+
+
+
+```
+This line guides(fill = guide_legend(nrow = N)) is very useful we you have limited space and a lot of legend items
+It also works as guides(color = guide_legend(nrow = N)) if you need to arrange color legends. 
+
+##faceting
+faceting is very important when you have a factorial design. 
+In this experiment, we have supp as a factor, and dose as another factor. 
+So this is a factorial design
+faceting allows you and readers to focus on the true comparison of interest 
+
+1) Let's say we are interested in comparing the effect of each supp across different doses...
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  facet_grid(. ~ supp) + #see comments after plot for explanations 
+  stat_summary(geom = "line",  
+               fun.y = mean,  
+               aes(group = supp, color = supp),  
+               size = 1.2) + 
+  stat_summary(geom = "ribbon",   
+               fun.data = mean_se, 
+               aes(group = supp,
+                   fill = supp), 
+               alpha = 0.5) +   
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") +    
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  scale_color_manual(values = wisteria[c(1, 7)]) + 
+  scale_x_continuous(breaks = c(0.5, 1, 2)) +  
+  labs(x = "dose",              
+       y = "teeth length",
+       fill = "supplement",
+       color = "supplement") +
+  guides(color = F) +
+  guides(fill = guide_legend(nrow = 1, ncol = 2)) +  
+  theme_minimal() +
+  theme(legend.position = c(0.8, 0.2)) + 
+  theme(axis.line = element_line(size = 1.2)) + 
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+```
+Now it makes two plots. 
+The facet syntax works like this: 
+facet_grid(row ~ column) 
+We are using supp as columns, and only 1 row, so 
+facet_grid(. ~ supp). The "." before the "~" is just a space holder. 
+
+
+
+You can increase the panel spacing too
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  facet_grid(. ~ supp) +  
+  stat_summary(geom = "line",  
+               fun.y = mean,  
+               aes(group = supp, color = supp),  
+               size = 1.2) + 
+  stat_summary(geom = "ribbon",   
+               fun.data = mean_se, 
+               aes(group = supp,
+                   fill = supp), 
+               alpha = 0.5) +   
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") +    
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  scale_color_manual(values = wisteria[c(1, 7)]) + 
+  scale_x_continuous(breaks = c(0.5, 1, 2)) +  
+  labs(x = "dose",              
+       y = "teeth length",
+       fill = "supplement",
+       color = "supplement") +
+  guides(color = F) +
+  guides(fill = guide_legend(nrow = 1, ncol = 2)) +  
+  theme_minimal() +
+  theme(legend.position = "none") +  #this time the legend is redundant with the panel label, so I turn it off. 
+  theme(axis.line = element_line(size = 1.2)) + 
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(panel.spacing = unit(1.2, "lines")) #make 1.2 lines of spacing between the subplots (panels)
+
+
+```
+
+Great!
+
+2) But now say I am actually interested in comparing between supp at each dose, what do I do?
+We'll need facet_grid(. ~ dose), no?
+
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  facet_grid(. ~ dose) +  #change to ~ dose
+  stat_summary(geom = "line",  
+               fun.y = mean,  
+               aes(group = supp, color = supp),  
+               size = 1.2) + 
+  stat_summary(geom = "ribbon",   
+               fun.data = mean_se, 
+               aes(group = supp,
+                   fill = supp), 
+               alpha = 0.5) +   
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") +    
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  scale_color_manual(values = wisteria[c(1, 7)]) + 
+  scale_x_continuous(breaks = c(0.5, 1, 2)) +  
+  labs(x = "dose",              
+       y = "teeth length",
+       fill = "supplement",
+       color = "supplement") +
+  guides(color = F) +
+  guides(fill = guide_legend(nrow = 1, ncol = 2)) +  
+  theme_minimal() +
+  theme(legend.position = "none") +   
+  theme(axis.line = element_line(size = 1.2)) + 
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(panel.spacing = unit(1.2, "lines"))  
+```
+Now there is a problem. The lines and ribbons are gone. 
+That's because in each panel, there is only one dose. There is nothing to connect.
+And the x axis is redundant with the panel. 
+So what we really need is to put supp on x axis instead
+
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = supp, y = len)) +
+  facet_grid(. ~ dose) +    
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") +    
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  scale_color_manual(values = wisteria[c(1, 7)]) + 
+  #scale_x_continuous(breaks = c(0.5, 1, 2)) +  remove this. this time x axis is discrete
+  labs(x = "supplement",  #now x = supplment              
+       y = "teeth length",
+       fill = "supplement",
+       color = "supplement") +
+  guides(color = F) +
+  guides(fill = guide_legend(nrow = 1, ncol = 2)) +  
+  theme_minimal() +
+  theme(legend.position = "none") +  #this time the legend is redundant with the x label, so I turn it off. 
+  theme(axis.line = element_line(size = 1.2)) + 
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(panel.spacing = unit(1.2, "lines"))  
+```
+There is no numeric trend on x axis, so I removed the ribbon and line. 
+But I can still add the errorbars back.
+
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = supp, y = len)) +
+  facet_grid(. ~ dose) +    
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") + 
+  stat_summary(geom = "errorbar", #draw errorbars
+               width = 0.2, size = 1,
+               aes(group = supp), #one bar per supp per dose
+               fun.data = mean_se) +   #errorbar base on standard error (SE)
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  scale_color_manual(values = wisteria[c(1, 7)]) + 
+  labs(x = "supplement",  #now x = supplment              
+       y = "teeth length",
+       fill = "supplement",
+       color = "supplement") +
+  guides(color = F) +
+  guides(fill = guide_legend(nrow = 1, ncol = 2)) +  
+  theme_minimal() +
+  theme(legend.position = "none") +  
+  theme(axis.line = element_line(size = 1.2)) + 
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(panel.spacing = unit(1.2, "lines"))  
+```
+Pretty good. 
+There is one problem. "oJ" and "VC" text appear multiple times. We can turn them off and only show the legend.
+
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = supp, y = len)) +
+  facet_grid(. ~ dose) +    
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") + 
+  stat_summary(geom = "errorbar",  
+               width = 0.2, size = 1,
+               aes(group = supp),  
+               fun.data = mean_se) +   
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  scale_color_manual(values = wisteria[c(1, 7)]) + 
+  scale_x_discrete(labels = NULL) + #turn off x axis text using labels = NULL 
+  labs(x = "supplement",               
+       y = "teeth length",
+       fill = "supplement",
+       color = "supplement") +
+  guides(color = F) +
+  guides(fill = guide_legend(nrow = 1, ncol = 2)) +  
+  theme_minimal() +
+  theme(legend.position = "bottom") +  #put the legends back 
+  theme(axis.line = element_line(size = 1.2)) + 
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(panel.spacing = unit(1.2, "lines"))
+```
+
+Now just a couple final touches. Note that the text "supplement" appears twice, and dose appears none. 
+We can put the panel labels to the bottom, and swith the x axis label to dose instead.
+
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = supp, y = len)) +
+  facet_grid(. ~ dose, switch = "x") + #switch = "x" puts x panel labels to the bottom instead of top    
+  geom_point(aes(fill = supp), 
+             position = position_jitter(0.1, seed = 666),    
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, 
+             color = "black") + 
+  stat_summary(geom = "errorbar", 
+               width = 0.2, size = 1,
+               aes(group = supp),  
+               fun.data = mean_se) +     
+  scale_fill_manual(values = wisteria[c(1, 7)]) +  
+  scale_color_manual(values = wisteria[c(1, 7)]) + 
+  scale_x_discrete(labels = NULL) +  
+  labs(x = "dose",  #now x is dose again               
+       y = "teeth length",
+       fill = "supplement",
+       color = "supplement") +
+  guides(color = F) +
+  guides(fill = guide_legend(nrow = 1, ncol = 2)) +  
+  theme_minimal() +
+  theme(legend.position = "top") +  #legends to the top, make space for x axis label
+  theme(axis.line = element_line(size = 1.2)) + 
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(panel.spacing = unit(1.2, "lines")) +
+  theme(strip.placement = "outside") # put the text 0.5, 1, and 2  outside the axis line
+
+
+```
+Now it really looks like dose is x axis, but in fact it is the faceting factor. 
+
+Congratulation! You have produced a publication quality plot! 
+
+I think this is the best plot we can make for faceting by dose. 
+The best practice of plotting is always idenity the comparison of interest,
+remove redundant and unnecessary elements,  
+try to make it as pretty as you can, and
+be clear on what you want to show. 
+
+#Exercise - Now time for you to try
+
+Let's use the R built-in dataset CO2 as example
+Ref: Potvin, C., Lechowicz, M. J. and Tardif, S. (1990), Ecology, 71, 1389–1400.
+```{r}
+head(CO2)
+str(CO2)
+```
+
+Task: produce a plot that includes the info for Type and Treatment, with uptake on Y axis. 
+Let's say we are interested in the effect of "Treament" in each Type. 
+
+
+
+Hint:
+
+1) What should be on the x axis?
+2) What variable do you color or fill with?
+3) What faceting layout do you want to use? 
+
+Use the format: 
+
+CO2 %>% 
+  ggplot(aes(x = ???, y = uptake)) +
+  facet_grid(??? ~ ???) + 
+  geom_ponit(aes()) +
+  stat_summary(geom = errorbar) +
+  scale_color_manual() +
+  scale_fill_manual() +
+  scale_..._.... +
+  labs() +
+  guides() +
+  theme_minimal()+
+  theme(legend.position = ...) +
+  theme(axis.line = element_line(size = 1.2)) + 
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) 
+
+Now try to make the best plot you can!
+```{r}
+
+```
+
+
+
+ 
