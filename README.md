@@ -39,3 +39,19 @@ Units 10 - 12 focus on regression.
 
 Formal math is kept to minimum. The series focus on basic concepts, interpretation and execution in R. 
 Each unit builds upon the previous. After each unit, there is also an exercise. 
+
+# Getting started
+1) Clone the repository to your machine by downloading the zip file
+2) Unzip (and move the “Online_R_learning” directory to whichever you like on your machine).
+3) Open RStudio and create a new project, setting “Online_R_learning” as the working directory. 
+4) Run .Rmd files under the /R_codes folder.   
+
+
+
+
+
+
+
+
+
+
