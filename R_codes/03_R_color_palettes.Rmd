@@ -1,11 +1,9 @@
 ---
 title: "How to design new color palettes in R"
 author: "Chenxin Li"
-date: "March 23 2020"
+date: "6/20/2020"
 output:
-  html_document:
-    df_print: paged
-    
+  html_notebook 
 ---
 
 ```{r setup, include=FALSE}
@@ -34,12 +32,11 @@ library(tidyr)
 library(dplyr)
 library(readr)
 library(readxl)
-library(stringr)
 library(RColorBrewer)
 library(viridis)
-library(svglite)
-library(cowplot) 
 ```
+RColorBrewer and viridis are two packages of pre-made color palettes that you can use. 
+
 
 #data
 
@@ -51,7 +48,65 @@ data <- data.frame(
 )
 ```
 
+##RColorBrewer 
+RColorBrewer has some pre-made color palettes that you can use if you don't bother to make your own. 
+They are pretty decent! 
+To set the colors or fill, use scale_color_brewer() or scale_fill_brewer() 
+You can look at all the palattes here. 
+```{r}
+RColorBrewer::display.brewer.all()
+```
+(FYI: If your output shows in line with your code, 
+to the upper left corner of the output, there is a "show in new window" button. Click that and drag the window longer to see it better. 
+If your output shows up in the Plots area at the lower right hand side, you can click "Zoom") 
+
+There are three groups of palettes. The top group is continuous unidirectional. They are meant for variables that are from 0 to Inf (or -Inf). 
+The second group is qualitative. This is meant for discrete variables.
+The third group is continuous bidirectional. They are meant for variables ranging from -Inf to Inf, with both positive and negative values. 
+
+```{r}
+data %>%  
+  ggplot(aes(x = treatment, y = response)) +
+  geom_bar(stat = "identity", aes(fill = treatment)) +  
+  scale_fill_brewer(palette = "Accent") + #call the palette here
+  labs(x = NULL,
+       y = NULL) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(text = element_text(size = 18, face = "bold", color = "black")) +
+  theme(axis.text = element_blank()) +
+  theme(panel.grid = element_blank()) +
+  coord_flip()
+```
+This is the "Accent" palette from RColorBrewer 
+
+
+
+
+```{r}
+data %>%  
+  ggplot(aes(x = treatment, y = response)) +
+  geom_bar(stat = "identity", aes(fill = treatment)) +  
+  scale_fill_brewer(palette = "Set2") + #call the palette here
+  labs(x = NULL,
+       y = NULL) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  theme(axis.line = element_line(size = 1.2)) +
+  theme(text = element_text(size = 18, face = "bold", color = "black")) +
+  theme(axis.text = element_blank()) +
+  theme(panel.grid = element_blank()) +
+  coord_flip()
+```
+This is the "Set2" palette from RColorBrewer 
+
+
+
+
+
 #Example 1 - "wisteria" 
+Now let's make our own palette. 
 
 Wisteria is a color palette that I designed, inspired by the beautiful flowers of the wisteria vines. 
 https://en.wikipedia.org/wiki/Wisteria   
@@ -129,7 +184,7 @@ https://upload.wikimedia.org/wikipedia/commons/4/48/Red_Spider_Lily----Lycoris_r
 Again if you want beautiful palettes, flowers is a good place to start. 
 
 ##pick colors.
-What can I do if I don't want to be confined by preexisting colors in R? 
+What can I do if I don't want to be confined by pre-existing colors in R? 
 
 For Windows: "takecolor" is a free app: https://download.cnet.com/TakeColor/3000-2192_4-10387506.html 
 After unzipping, run the .exe file. Hover your mouse on the color. Alt + C will record the color. 
@@ -207,9 +262,13 @@ If you can still discern the colors after you turn on "Deuteranopia", it should 
 
 #How can I design continous color gradients? 
 
-##The viridis package
 
-The best continuous color gradients are always the viridis color maps. 
+##The continuous color palettes from RColorBrewer
+As I showed earlier, RColorBrewer has a set of pre-made continuous palette that you can use.
+
+
+##The viridis package
+The best continuous color gradients are always the viridis color maps. You can read more here if you are interested: 
 https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html 
 
 The viridis package contain 4 color scales: viridis, magma, plasma and inferno. 
@@ -245,6 +304,7 @@ choropleth <- merge(county_df, unemp, by = c("state", "county"))
 choropleth <- choropleth[order(choropleth$order), ]
 ```
 
+ 
 ```{r}
 ggplot(choropleth, aes(long, lat, group = group)) +
   geom_polygon(aes(fill = rate), colour = alpha("white", 1 / 2), size = 0.2) +
@@ -256,10 +316,22 @@ ggplot(choropleth, aes(long, lat, group = group)) +
         axis.ticks = element_blank(), axis.title = element_blank()) +
   scale_fill_viridis(option="inferno")
 ```
+This is the "inferno" option from viridis  
 
+```{r}
+ggplot(choropleth, aes(long, lat, group = group)) +
+  geom_polygon(aes(fill = rate), colour = alpha("white", 1 / 2), size = 0.2) +
+  geom_polygon(data = state_df, colour = "white", fill = NA) +
+  coord_fixed() +
+  theme_minimal() +
+  ggtitle("US unemployment rate by county") +
+  theme(axis.line = element_blank(), axis.text = element_blank(),
+        axis.ticks = element_blank(), axis.title = element_blank()) +
+  scale_fill_viridis(option="viridis")
+```
+This is the "viridis" option from viridis 
 
 ##But I still want to make my own! 
-
 Okay, you can try...
 ```{r}
 Higanbana_c <- c(
@@ -289,13 +361,16 @@ ggplot(choropleth, aes(long, lat, group = group)) +
   scale_fill_gradientn(colours = Higanbana_c)  #call the colors here
 ``` 
 
-Well, not too different from viridis-inferno. But I do like the red and black colors. 
+Well, not too different from sinferno. But I do like the red and black colors. 
 
 #Now design your own palette and try it out! 
 Design the best palette you can and send them to Li. 
+You should probably make one just for discrete variables and don't worry about making one for continuous variables.  
+
+Check:
+Are the colors easily discernable? 
+Is the palette colorblind friendly? 
 
 
 
-
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+ 

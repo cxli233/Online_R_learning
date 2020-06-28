@@ -1,7 +1,7 @@
 ---
 title: "Formatting ggplots"
 author: "Chenxin Li"
-date: "3/23/2020"
+date: "6/20/2020"
 output:
   html_notebook 
 ---
@@ -29,25 +29,20 @@ This workbook will go over different features of ggplot
 ...and how to make the clearest, prettiest ggplot possible. 
 
 #load packages
+You might need to install some of these packages 
 ```{r}
 library(ggplot2) 
 library(tidyr)
 library(dplyr)
 library(readr)
 library(readxl)
-library(stringr)
-library(RColorBrewer)
-library(viridis)
-library(svglite)
-library(cowplot)
 ```
 
 
 #data 
-
 We'll use the R built-in dataset ToothGrowth. 
 This dataset is about different doses of vitamin C on tooth growth of guinea pigs
-
+Ref: Crampton, E. W. (1947). The Journal of Nutrition, 33(5), 491–504. doi: 10.1093/jn/33.5.491.
 ```{r}
 head(ToothGrowth)
 str(ToothGrowth)
@@ -65,11 +60,17 @@ Dose on X, length on Y, color as supp
 ToothGrowth %>% 
   ggplot(aes(x = dose, y = len)) +
   geom_point(aes(color = supp)) 
-
-
 ```
-not bad... Now let's use the custom palette I came up with last time
-I am going to go with wisteria 
+I prefer to type out the data frame first, then pipe into ggplot(). It's more readable this way.  
+Thus ToothGrowth %>% ggplot(...). 
+
+The row ggplot(aes(x = ..., y = ...)) specifies what are the x and y axis. 
+Then you add a new layer (in this case points) by using + 
+and in a new line you write geom_poits(). "Geom" stands for geommetric object. 
+Inside geom_point() you want to color by supp, so you write aes(color = supp). 
+
+
+This is not bad... Now let's use a custom palette called "wisteria". It's just a set of color names.  
 
 ##adjust geom color/fill
 ```{r}
@@ -789,12 +790,13 @@ be clear on what you want to show.
 #Exercise - Now time for you to try
 
 Let's use the R built-in dataset CO2 as example
+Ref: Potvin, C., Lechowicz, M. J. and Tardif, S. (1990), Ecology, 71, 1389–1400.
 ```{r}
 head(CO2)
 str(CO2)
 ```
 
-Task: produce a plot that includes the info for Plant, Type and Treatment, with uptake on Y axis. 
+Task: produce a plot that includes the info for Type and Treatment, with uptake on Y axis. 
 Let's say we are interested in the effect of "Treament" in each Type. 
 
 
@@ -824,8 +826,10 @@ CO2 %>%
   theme(axis.text = element_text(size = 12, color = "black", face = "bold")) 
 
 Now try to make the best plot you can!
+```{r}
+
+```
 
 
 
  
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

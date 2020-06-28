@@ -1,7 +1,7 @@
 ---
 title: "Randomized Block Design"
 author: "Chenxin Li"
-date: "3/24/2020"
+date: "6/21/2020"
 output: html_notebook
 ---
 
@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #Introduction 
 
-Last time we went over how to perform one-way ANOVA to compare means of multiple treatments.
+We went over how to perform one-way ANOVA to compare means of multiple treatments.
 This time we'll cover a common experimental design, that is randomized block design
 
 we'll go over 
@@ -32,17 +32,15 @@ library(tidyr)
 library(dplyr)
 library(readr)
 library(readxl)
-library(stringr)
 library(RColorBrewer)
 library(viridis)
-library(svglite)
-library(cowplot)
 ```
 
 #data
 
 As an example, we'll use the R built-in dataset OrchardSpray
 This is an experiment with different spray treatments and compares their effect (the decrease of pests)
+Ref: McNeil, D. R. (1977) Interactive Data Analysis. New York: Wiley.
 ```{r}
 head(OrchardSprays)
 str(OrchardSprays)
@@ -170,11 +168,14 @@ OrchardSprays_new <- OrchardSprays %>%
 
 Before we do any analysis, it's a good idea to look at the data first. 
 Make the best plot you can for this dataset. 
-What to put on x axis?
-What to color/fill with?
-Any faceting that you want to use? 
+You'll put decrease on x axis and treatment on y axis. The plot does not have to include the info for rows and columns. 
+Rows and columns are blocking factors here. The only role of blocking factors is to control for unintended variations.
+And we are not actually interested the differences between rows and columns. 
 
 Make your plot here:
+```{r}
+
+```
 
 
 
@@ -187,6 +188,21 @@ Make your plot here:
 #stat
 ##setting up the model and check assumptions
 
+We can pull out the summary statistics first. 
+```{r}
+OrchardSprays_new %>% 
+  group_by(treatment) %>% 
+  summarise(mean = mean(decrease),
+            var = var(decrease),
+            sd = sd(decrease),
+            n = n()) 
+```
+If you look at the variances, this is very not ideal. Treatments A and B have very low variance.
+Treatments E and F have larger variances. But it doesn't look like there is a consistent trend on how variances change with means.
+I don't think a log or logit transformation would be helpful. 
+
+(If you are interested, you can try log and logit transformation and compare the results) 
+But for now we'll go with the original scale. 
 ```{r}
 model_spray <- lm(decrease ~ treatment + row.F + col.F, data = OrchardSprays_new)
 ```
@@ -278,7 +294,7 @@ Let's practise that!
 This time we will look at an actual experiment 
 
 ```{r}
-chicken_experiment <- read_csv("betacarotenoid.csv")
+chicken_experiment <- read_csv("data/betacarotenoid.csv")
 head(chicken_experiment)
 ```
 
@@ -286,14 +302,17 @@ The researcher was testing the effect of different pastures (P1 to P5) on the am
 There were 4 fields (F1 - F4). The fields are the blocking factors.
 In each field, hens were randomly assigned to be fed with one of the 5 pastures. 
 At the end of the experiment, eggs were collected and beta-carotene concentration was assayed. 
-
+(Data from UC Davis Plant Sciences course PLS205, Winter 2017)
 
 ##visualize the data
 make the best plot you can to visualize the data.
 
 What to put on x axis?
 What to color/fill with?
-Any faceting that you want to use? 
+You don't have to include blocking factors in the plot 
+```{r}
+
+```
 
  
 
@@ -312,6 +331,9 @@ How many levels in each?
 What should you include in the model? Set up the linear model. 
 
 ##check assumptions of ANOVA 
+```{r}
+
+```
 
 Normality?
 
@@ -319,13 +341,22 @@ Equal variance?
 
 ##Run ANOVA
 How would you interpret the ANOVA table?
+```{r}
+
+```
 
 
 ##Run Tukey tests and show cld
+```{r}
+
+```
 
 Which pasture treatment gave the best beta-carotene content? 
 
 Pull out the cld output. What does it tell you? 
+```{r}
+
+```
 
  
 

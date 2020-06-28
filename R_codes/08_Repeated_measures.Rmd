@@ -1,7 +1,7 @@
 ---
 title: "Repeated measures"
 author: "Chenxin Li"
-date: "3/25/2020"
+date: "6/21/2020"
 output: html_notebook
 ---
 
@@ -36,11 +36,8 @@ library(tidyr)
 library(dplyr)
 library(readr)
 library(readxl)
-library(stringr)
 library(RColorBrewer)
 library(viridis)
-library(svglite)
-library(cowplot)
 ```
 
 #Why is repeated measure a problem for ANOVA
@@ -87,9 +84,10 @@ We'll use an actual experiment I did as the example.
 
 I was comparing the height of two rice genotypes, WT and mutant, through time. 
 Every week I went to measure the heights of those plants.
+(Data from Sundaresan Lab, Department Of Plant Biology, UC Davis)
 
 ```{r}
-rice_growth <- read_csv("rice_growth_data.csv")
+rice_growth <- read_csv("data/rice_growth_data.csv")
 head(rice_growth)
 ```
 
@@ -190,10 +188,24 @@ Before we do any analysis, let's plot the data and look at it first.
 Plot age.f on x axis, and Height_mm on y axis. Color by genotype. 
 
 Make the best plot you can here:
+```{r}
+
+```
 
 
 
-
+We can also pull out the summary statistics 
+We'll need to group by genotype and age.f
+```{r}
+rice_growth %>% 
+  group_by(genotype, age.f) %>% 
+  summarise(mean = mean(Height_mm),
+            var = var(Height_mm),
+            sd = sd(Height_mm),
+            n = n()) 
+```
+The variances seem to increase as the means increase, but I don't think it's too bad (not orders of magnitude different).
+If you are interested, you can try a log transformation and compare results. I think the conclusions should practically be the same. 
 
 
 
@@ -217,7 +229,7 @@ plot(model_rice)
 ```
 It turns out when you call plot() on a mixed effect model, it gives you the residue vs. mean plot.
 The residues seem to be pretty evenly spreat across the range of mean. 
-That means the variance is even across groups. 
+The variances are more or less even across groups, although there is a slightly larger spread at the high end of the data.  
 
 So now we are all clear to do ANOVA.
 
@@ -251,7 +263,7 @@ What does this tell us?
 It tells us that in each time point (except the first),
 WT plants are on average significantly taller than 48/48 plants. 
 
-(Note:
+(Note: The differences in heights at week 9 is 28.3 mm. 
  In reality, ~30 mm (3cm) difference in height is practically nothing for rice plants. 
  Even though something is statistically significant, it does not always mean something practically different.)
  
@@ -267,10 +279,10 @@ In this experiment, the researchers looked at the effect of 5 treatments (A - F)
 Each treatment has 3 pots. 
 Each pot has 4 plants. The treatment was applied to the pot, not the individual plants. 
 The growth of each plant in each pot was measured. 
-
+(Data from UC Davis Plant Sciences course PLS205, Winter 2017) 
 
 ```{r}
-mint_data <- read_csv("Mint.csv")
+mint_data <- read_csv("data/Mint.csv")
 head(mint_data)
 tail(mint_data)
 ```
@@ -301,10 +313,9 @@ Any faceting that you want to use?
 
 
 Make your plot here:
+```{r}
 
-
-
-
+```
 
 
 
@@ -326,6 +337,9 @@ What is the observational unit?
 Set up the linear model. 
 
 ##check assumptions of ANOVA
+```{r}
+
+```
 
 Normality?
 
@@ -333,6 +347,9 @@ Equal variance?
 
 ##run ANOVA
 How would you interpret the ANOVA table?
+```{r}
+
+```
 
 
 ##Tukey test
@@ -340,6 +357,9 @@ Say we are interested in knowing which variety performs better each nitrogen inp
 How should you set up the Tukey test? 
  
 Pull out the cld output and interpret the results. 
+```{r}
+
+```
 
 
 
@@ -350,5 +370,3 @@ Pull out the cld output and interpret the results.
 
 
 
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

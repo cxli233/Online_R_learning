@@ -1,7 +1,7 @@
 ---
 title: "Polynomial Curve Fitting"
 author: "Chenxin Li"
-date: "3/26/2020"
+date: "6/21/2020"
 output: html_notebook
 ---
 
@@ -24,11 +24,8 @@ library(tidyr)
 library(dplyr)
 library(readr)
 library(readxl)
-library(stringr)
 library(RColorBrewer)
 library(viridis)
-library(svglite)
-library(cowplot)
 ```
 
 
@@ -43,9 +40,10 @@ as well as the number of terms in the equation (i.e. what's the highest power te
 #How to set up a polynomial regression model? 
 We will use the potato yield experiment as an example. 
 We are looking at the yield of two potato varieties across 5 nitrogen inputs. 
+(Data from UC Davis Plant Sciences course PLS205, Winter 2017) 
 
 ```{r}
-potato <- read_csv("Potato_Yield.csv")
+potato <- read_csv("data/Potato_Yield.csv")
 head(potato)
 ```
 
@@ -123,7 +121,9 @@ summary(model_alpine3)
 Now, something interesting has happen.
 Although R^2 increased from 0.5 to 0.51, adjusted R^2 has decreased from 0.48 to 0.47.
 This is an indication of over-fitting.
-Remember, adjusted R^2 corrects for number of parameters in the model.
+Adjusted R^2 corrects for number of parameters in the model.
+As more parameters (terms) are added to the model, R^2 always increases, because there is always variances that are explained by chance. 
+Adjusted R^2 takes into account the number of parameters in the model, and penalizes for more parameters. 
 More parameters will increase R^2, but more parameters will also decrease adjusted R^2.
 In fitting a polynormial regression model, we need to optimize adjusted R^2. 
 The higher the adjusted R^2, the more accurately we will capture the true trend of the data.
@@ -266,6 +266,9 @@ What is the adjusted R^2?
 Draw out the model along with all the dots
 
 Make your plot here:
+```{r}
+
+```
 
 
 
@@ -276,6 +279,9 @@ Make your plot here:
 
 ##make prediction
 What is the predicted yield when nitrogen = 220? 
+```{r}
+
+```
 
 
 
@@ -291,4 +297,4 @@ What is the predicted yield when nitrogen = 220?
 
 
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+

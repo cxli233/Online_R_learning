@@ -1,7 +1,7 @@
 ---
 title: "Multifactorial Design and interactions"
 author: "Chenxin Li"
-date: "3/25/2020"
+date: "6/21/2020"
 output: html_notebook
 ---
 
@@ -32,11 +32,8 @@ library(tidyr)
 library(dplyr)
 library(readr)
 library(readxl)
-library(stringr)
 library(RColorBrewer)
 library(viridis)
-library(svglite)
-library(cowplot)
 ```
 
 
@@ -53,6 +50,7 @@ on the tooth length of guinea pigs.
 Each animal was given a supplement (either OJ or VC);
 and the animal can receive a high dose (2), mid dose (1) or low dose (0.5).
 At the end of the experiment, the longest tooth of the animal is measured. 
+Ref: Crampton, E. W. (1947). The Journal of Nutrition, 33(5), 491–504. doi: 10.1093/jn/33.5.491.
 
 ```{r}
 head(ToothGrowth)
@@ -180,6 +178,19 @@ ToothGrowth_new <- ToothGrowth %>%
   mutate(dose.f = as.factor(dose))   
 ```
 
+We can pull out the summary statistics first:
+In this case we will group by both supp and does.f, the two factors. 
+```{r}
+ToothGrowth_new %>% 
+  group_by(supp, dose.f) %>% 
+  summarise(mean = mean(len),
+            var = var(len),
+            sd = sd(len),
+            n = n()) 
+```
+Well, the variances are not ideal, as not all of them are within a two-fold range, but all of them are at least within an order of magnitude. 
+So maybe it'll be okay. 
+
 ```{r}
 model_teeth <- lm(len ~ supp + dose.f + supp:dose.f, data = ToothGrowth_new) 
 ```
@@ -294,9 +305,10 @@ In this experiment, we are looking at the yield of two varieties of potato acros
 
 Potato from one of the two varieties were randomly assigned one of the 5 nitrogen treatments. 
 At the end of the experiment, potatos were harvested and weighed. 
+(Data from UC Davis Plant Sciences course PLS205, Winter 2017) 
 
 ```{r}
-Potato_Yield <- read.csv("Potato_Yield.csv")
+Potato_Yield <- read.csv("data/Potato_Yield.csv")
 head(Potato_Yield)
 str(Potato_Yield)
 ```
@@ -313,9 +325,9 @@ WARNING: are there any numerically recorded variables you want to change into fa
 (Hint: there is 1 variable that you need to change into factor.) 
 
 Make your plot here:
+```{r}
 
-
-
+```
 
 
 
@@ -337,9 +349,16 @@ What main effects should you include in the model?
 Which interactions should you include in the model? 
 
 Set up the linear model. 
+```{r}
+
+```
+
 
 
 ##check assumptions of ANOVA 
+```{r}
+
+```
 
 Normality?
 
@@ -347,13 +366,23 @@ Equal variance?
 
 ##run ANOVA
 How would you interpret the ANOVA table?
+```{r}
+
+```
 
 
 ##Tukey test
 Say we are interested in knowing which variety performs better each nitrogen input. 
 How should you set up the Tukey test? 
+```{r}
+
+```
+
  
 Pull out the cld output and interpret the results. 
+```{r}
+
+```
 
  `
  

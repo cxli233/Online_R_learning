@@ -1,7 +1,7 @@
 ---
 title: "Split field and nested design"
 author: "Chenxin Li"
-date: "3/26/2020"
+date: "6/21/2020"
 output: html_notebook
 ---
 
@@ -39,11 +39,8 @@ library(tidyr)
 library(dplyr)
 library(readr)
 library(readxl)
-library(stringr)
 library(RColorBrewer)
 library(viridis)
-library(svglite)
-library(cowplot)
 ```
 
 
@@ -172,11 +169,11 @@ T1 through T5 were watered high phosphate water, while T6 through T10 were water
 
 Each tray contains one plant of each genotpe.
 At the end of the experiment, the stem from each plant was measured for thickness.
+(Data from UC Davis Plant Sciences course PLS205, Winter 2017) 
 
 It already sounds very complicated. So let's visualize the design in ggplot.
-
 ```{r}
-maize_data <- read_csv("Maize_thickness.csv")
+maize_data <- read_csv("data/Maize_thickness.csv")
 head(maize_data)
 ```
 ```{r}
@@ -207,7 +204,11 @@ Before we analyze the results from this experiment, let's visualize it first.
 
 Plot Geno on x axis, and thickness on y axis.
 
-Make the best plot you can here:
+Make the best plot you can here: 
+Use one of Temp or Phos as faceting factor, and the other as color or fill. 
+```{r}
+
+```
 
 
 
@@ -318,9 +319,10 @@ We have 4 blocks.
 Within each block, it is divided into 4 mainplots. Each mainplot is given a fertilizer treatment (1 - 4).
 Within each mainplot, it is sub-divided into 4 subplots. Each subplot is given a variety of oat (1 - 4). 
 At the end of the experiment, oat from each subplot is harvest and the yield is recorded. 
+(Data from UC Davis Plant Sciences course PLS205, Winter 2017)  
 
 ```{r}
-oats_data <- read_csv("Oats.csv")
+oats_data <- read_csv("data/Oats.csv")
 head(oats_data)
 ```
 
@@ -338,6 +340,9 @@ What to plot on the x axis?
 what to color/fill with?
 Any faceting you want to use?
 Make the best plot you can here:
+```{r}
+
+```
 
 
 
@@ -368,13 +373,22 @@ What should the model be?
 Normality?
 
 Equal variance? 
+```{r}
+
+```
 
 
 ##run ANOVA and interpret the ANOVA table
+```{r}
+
+```
 
 
 ##run Tukey test and identify the best performing oat variety in each fertilizer treatment 
+```{r}
 
+```
+Which variety performed the best? 
 
 
 
@@ -406,4 +420,3 @@ Equal variance?
 
 
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

@@ -1,7 +1,7 @@
 ---
 title: "Correlation and Regression"
 author: "Chenxin Li"
-date: "3/26/2020"
+date: "6/22/2020"
 output: html_notebook
 ---
 
@@ -34,32 +34,77 @@ library(tidyr)
 library(dplyr)
 library(readr)
 library(readxl)
-library(stringr)
 library(RColorBrewer)
 library(viridis)
-library(svglite)
-library(cowplot)
 ```
 
 
 #what is correlation, what it means and what it does not mean. 
 Correlation describes as one variable changes, the other variable changes in a consistent direction. 
 
-To visualize that, let's use the R built-in iris dataset as an example.
-I am going to plot petal length on x axis, and petal width on y axis
+To visualize that, we'll use income and child motality rate across countries as an example.
+```{r}
+child_mortality <- read_csv("data/child_mortality_0_5_year_olds_dying_per_1000_born.csv") 
+babies_per_woman <- read_csv("data/children_per_woman_total_fertility.csv") 
+income <- read_csv("data/income_per_person_gdppercapita_ppp_inflation_adjusted.csv")  
+```
+These are two datasets downloaded from the Gapminder foundation (https://www.gapminder.org/data/). 
+The Gapminder foundation has datasets on life expectancy, economy, education, population across countries and years. 
+The goal is to remind us not only the “gaps” between developed and developing worlds, 
+but also the amazing continuous improvements of quality of life through time.
+
+1) child mortality (0 - 5 year olds) dying per 1000 born.
+2) median income per person. 
+3) births per woman.
+These were recorded from year 1800 and projected all the way to 2100.
 
 ```{r}
-iris %>% 
-  ggplot(aes(x = Petal.Length, y = Petal.Width)) +
+head(child_mortality)
+head(income)
+head(babies_per_woman)
+```
+These tables are not in tidy format. The years spread out across 200+ columns. 
+Let's make them into the tidy format first, and then we'll join them by matching the country and year columns.  
+
+```{r}
+child_mortality_tidy <- child_mortality %>% 
+  gather("year", "death_per_1000", c(2:302)) 
+
+income_tidy <- income %>% 
+  gather("year", "income", c(2:242)) 
+
+babies_per_woman_tidy <- babies_per_woman %>% 
+  gather("year", "birth", c(2:302)) 
+
+mortality_and_income_and_birth <- child_mortality_tidy %>% 
+  inner_join(income_tidy, by = c("country", "year")) %>%
+  inner_join(babies_per_woman_tidy, by = c("country","year")) %>% 
+  mutate(log10_income = log10(income))
+
+head(mortality_and_income_and_birth)
+```
+(FYI: income has a huge range and not normally distributed. The best way is to do a log transformation on income first.) 
+There are a lot of data. For the sake of this discussion, we'll just look at year 1945 (when WWII ended) for now.
+```{r}
+data_1945 <- mortality_and_income_and_birth %>% 
+  filter(year == 1945)
+```
+
+I'm going to plot log10(income) on x axis and child mortality on y axis.
+```{r}
+data_1945 %>% 
+  ggplot(aes(x = log10_income, y = death_per_1000)) +
   geom_point(alpha = 0.8) +
+  geom_smooth(method = "lm", se = F) +
   theme_minimal() +
   theme(axis.line = element_line(size = 1.2)) +
   theme(text = element_text(size = 12, color = "black", face = "bold")) +
   theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
 ```
 You can call this kind of plot a scatter plot, i.e., the dots are scattered. 
-As you can see, as the petal length of these iris flowers increases, they also tend to have wider petals.  
-With this, we can verbally say that "petal length and petal width are correlated". 
+As you can see, across countries, as income increases, child mortality decreases. 
+With this, we can verbally say that "income and child mortality are negatively correlated (or anti-correlated)". 
+
 
 But what is the statistics to quantify that?
 We will use the correlation test.
@@ -79,13 +124,13 @@ However, there are two more.
 It turns out the easiest way to check these assumptions is to just stare at the scatter plot. 
 
 Does it look like a linear relation? - Yeah.
-Does it look like there is more or less an even spread of dots along the range of values? - Yeah. 
-Are there any outliers (dots that are all the way out there)? - No.
+Does it look like there is more or less an even spread of dots along the range of values? - More or less okay.
+Are there any outliers (dots that are all the way out there)? - There is quite a spread, but I don't think there are outliers. 
 
 ##the correlation test
 To do a correlation test, use the cor.test() function. 
 ```{r}
-cor.test(iris$Petal.Length, iris$Petal.Width)
+cor.test(data_1945$death_per_1000, data_1945$log10_income)
 ```
 In the most applied sense, the two important numbers are "cor" and p-value. 
 The "cor" is the correlation coefficient. In publications it often times is notated the by lowercase letter "r".
@@ -103,9 +148,11 @@ The p value is the probability of getting a r more extreme than observed r,
 given the number of degrees of freedom, and if r were to be 0. 
 
 So what does the this correlation test tell us?
-r = 0.96, so that's pretty close to 1. So we have a strong positive correlation. 
+r = -0.62, so we have a moderate correlation. It's not surprising, as there is a quite a spread across the line.  
 The p-value is < 2.2e-16, which means if r were to be 0, 
-the probability of finding r > 0.96 is less than 2.2e-16. So we should reject the null hypothesis. 
+the probability of finding r < -0.62 is less than 2.2e-16. So we should reject the null hypothesis. 
+So log10(income) and child mortality are definately anti-correlated. 
+
 Note that the p value does not indicate how strong the correlation is. 
 A low p value does not mean a strong correlation.
 Only when both |r| is near 1, and the p value is low do you have a strong correlation. 
@@ -123,22 +170,12 @@ Yes, but you have to do ordinal correlation instead.
 You will correlate the rank order of the variables, instead of the actual numbers. 
 Let's do an example. 
 
-```{r}
-#this chunck simulate a mock data. You can ignore this
-set.seed(666)
-data1 <- data.frame(
-  "x" = 1:100,
-  "noise" = rnorm(n = 100, mean = 0, sd = 0.2) 
-) %>% 
-  mutate(y = log(x + 1) + noise)
-
-head(data1)
-```
+Now say we want to correlate child mortality and income (not log10).
 
 Let's plot this dataset to check assumptions first
 ```{r}
-data1 %>% 
-  ggplot(aes(x = x, y = y)) +
+data_1945 %>% 
+  ggplot(aes(x = income, y = death_per_1000)) +
   geom_point(alpha = 0.8) +
   theme_minimal() +
   theme(axis.line = element_line(size = 1.2)) +
@@ -146,32 +183,33 @@ data1 %>%
   theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
 ```
 
-Now you can see the trend is clearly non-linear. 
+Now you can see the trend is clearly non-linear. As income increases, mortality does not linearly decrease. 
 There is a workaround for this. We'll use the Spearman's method for ordinal correlation
 In the cor.test() function, we will add 'method = "s"' argument to 
 specify we are using Spearman's method for correlating rank orders.
 
 ```{r}
-cor.test(data1$x, data1$y, method = "s")
+cor.test(data_1945$death_per_1000, data_1945$income, method = "s")
 ```
 What R dose here is it ranks the numbers in both variables first, then it correlates the ranks. 
 rho is the Spearman's version of cor. You would interpret rho and p-value the same way as you would for a common correlation.
-
+We actually get very comparable results here. 
 
 
 #simple linear regression
-Let's go back to the iris example
+Let's look at mortality vs log10(income) again 
 ```{r}
-iris %>% 
-  ggplot(aes(x = Petal.Length, y = Petal.Width)) +
+data_1945 %>% 
+  ggplot(aes(x = log10_income, y = death_per_1000)) +
   geom_point(alpha = 0.8) +
+  geom_smooth(method = "lm", se = F) +
   theme_minimal() +
   theme(axis.line = element_line(size = 1.2)) +
   theme(text = element_text(size = 12, color = "black", face = "bold")) +
   theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
 ```
-Now we know petal length and petal width are correlated, 
-which means I can predict petal width with a given petal length, and vice versa. 
+Now we know child mortality and log10(income) are correlated, 
+which means I can predict mortality with a given log10(income), and vice versa. 
 How do I do that?
 
 To achieve that, we need to make a regression model. 
@@ -187,38 +225,42 @@ Linear regression, has the same assumptions as correlation. Again, the best way 
 ##Setting up a linear regression
 To set up a linear regression, we'll use the lm() function
 ```{r}
-model_petal <- lm(Petal.Width ~ Petal.Length, data = iris) 
+model_1945 <- lm(death_per_1000 ~ log10(income), data = data_1945) 
 ```
 Easy. 
-In this case, it doesn't matter if we do width ~ length or length ~ width. 
-However, in an actual experiment, say we are looking at the rate of an enzyme across different substrate concentrations,
+In this case, we probably want to do mortality ~ log10(income) rather than log10(income) ~ mortality. 
+This is under the assumption that the lack of income is the driving factor for higher child mortality. 
+Similarly, in actual experiments, say we are looking at the rate of an enzyme across different substrate concentrations,
 we should do rate ~ conc, because the concentration is the manipulative variable, the rate is the response variable. 
 
 
 We can check the assumptions of linear regression the way we check assumptions of ANOVA.
 Normality?
 ```{r}
-plot(model_petal, which = 2)
+plot(model_1945, which = 2)
 ```
 Pretty normal
 
 Equal variance?
 ```{r}
-plot(model_petal, which = c(1, 3))
+plot(model_1945, which = c(1, 3))
 ```
-There might be a little more variance at the higher end of the data. But it's not too bad. 
+It looks rather okay to me. There might be a little less variance at the higher end, but it's not too bad. 
 
 ##interpret a linear regression
 ```{r}
-summary(model_petal)
+summary(model_1945)
 ```
 ### the equation 
 The summary() function allows you to interpret your regression model. 
 The Coefficients are the intercept and slope. 
-Looks like we have a intercept = -0.36, and slope = 0.4157. 
+Looks like we have a intercept = 893, and slope = -191.81. 
 You can look at the their t values as well. 
 Again the null hypothesis is t = 0. The further the observed t is from 0, the less likely the null hypothesis is correct. 
-So your equation will be: Petal.Width = 0.4157 * Petal.Length - 0.36
+So your equation will be: mortality = -191.81 * log10(income) + 893 
+
+The unit of child mortality is death per 1000 births. And note that income is in units log10.
+This equation tells us that, when income increases 10 fold (+1 unit in log10), child mortality on average decrease 191 per 1000 births.  
 
 ### the goodness of fit
 An important result of a linear regression is R squared. 
@@ -229,32 +271,35 @@ A value of 0 means 0% of the variance is explained by the model, meaning poor fi
 A value of 1 means 100% of the variance is explained by the model, meaning perfect fit.
 
 A related concept is adjusted R^2. Adjusted R^2 corrects for the number of parameters in the model. 
-In this example, we have two parameters: slope for petal length, and intercept. 
+In this example, we have two parameters: slope forlog10(income), and intercept. 
 Adding more parameters to the model always increases R^2, because there is always variation can be explained by chance.
 Adjusted R^2 corrects for that. The more parameters in the model, the lower the adjusted R^2. 
 We will explain adjusted R^2 more in depth when we talk out polynomial curve fitting. 
-The null hypothesis of R^2 and adjusted R^2 is 0. 
+The null hypotheses of R^2 and adjusted R^2 are 0.
+
+In this case our R^2 is 0.38, which means 38% of the variances in child mortality can be explained by log10(income).
+Of course this is far from 100%, as we know child mortality is affected by many other socioeconomic factors. 
 
 
 ###visualize your model
 You might want to plot out your equation and see how well it fits the data.
-1) First find the range of the predictor. In this case the predictor is petal length. 
+1) First find the range of the predictor. In this case the predictor is log10(income). 
 2) Go from the lower end to the higher end of the predictor, one small step at a time (e.g. 0.1 increment at a time).
 3) Calculate the predicted values using the equation found by the regression model
 
 
 ```{r}
-fitted_petal <- data.frame(
-  "Petal.Length" = seq(min(iris$Petal.Length), max(iris$Sepal.Length), by = 0.1)
+fitted_mortality <- data.frame(
+  "log10_income" = seq(min(data_1945$log10_income), max(data_1945$log10_income), by = 0.1)
 ) %>%
-  mutate(Petal.Width = 0.4157 * Petal.Length - 0.36)
+  mutate(death_per_1000 = -191.81 * log10_income + 893 )  
 ```
 
 ```{r}
-iris %>% 
-  ggplot(aes(x = Petal.Length, y = Petal.Width)) +
-  geom_point(alpha = 0.8) + 
-  geom_line(data = fitted_petal, size = 1.2, color = "indianred") + # this is the command 
+data_1945 %>% 
+  ggplot(aes(x = log10_income, y = death_per_1000)) +
+  geom_point(alpha = 0.8) +
+  geom_line(data = fitted_mortality, color = "indianred", size = 1.2) +
   theme_minimal() +
   theme(axis.line = element_line(size = 1.2)) +
   theme(text = element_text(size = 12, color = "black", face = "bold")) +
@@ -265,13 +310,14 @@ That looks pretty good.
 
 
 ###predict intermediate values
-Say, if I have a flower with petal length of 3, how wide would its petal most likely be?
+Say, if a country has median income of 10,000 dollars a year, what would the child mortality be? 
 Well, we just plug it in!
+log10(10000) gives us 4. 
 ```{r}
-0.4157 * 3 - 0.36
+-191.81 * 4 + 893
 ```
 
-That gives us 0.8871. 
+That gives us 126 deaths per 1000 births, which is 12.6%.
 
 
 #Curve fitting using linear model
@@ -283,6 +329,7 @@ You can fit curves using linear model when the underlying mathematical relations
 To understand that, let's use the R built-in dataset Puromycin as an example.
 In this experiment, we are looking at the rate of an enzyme across different substrate concentrations. 
 There are two states: drug treated or non-treated. We will only use the non-treated control data for now.
+(Ref: Treloar, M. A. (1974), Effects of Puromycin on Galactosyltransferase in Golgi Membranes, M.Sc. Thesis, U. of Toronto.) 
 
 ```{r}
 Puromycin_ctrl <- Puromycin %>% 
@@ -408,24 +455,32 @@ This is clearly not perfect, but nonetheless it fits the lower concentration dat
 Now you have learned how to perform correlation test and how to perform linear regression
 Let's practise that!
 
-We'll practise correlation test first. We'll use the iris data again.
-Visualize the relation between sepal length and petal Width across flowers.
+We'll practise correlation test first. We'll use the income and child mortality data again.
+This time, we'll use the data from year 2015. 
+```{r}
+data_2015 <- mortality_and_income_and_birth %>% 
+  filter(year == 2015)
+
+head(data_2015)
+```
+
+Visualize the relation between birth and child mortality across countries in year 2015.
 Make your plot here:
+```{r}
+ 
+```
 
 
-
-
-
-
-
-
-Is there a correlation between sepal length and petal width? Do a correlation test.
+Is there a correlation between births per woman and child mortality? Do a correlation test.
+```{r}
+ 
+```
 
 
 What does the correlation coefficient tell you?
 
 
-Between sepal length and petal length, which has a stronger correlation with petal width?
+Between income vs mortality in 1945 and birth vs mortality in 2015, which has a stronger correlation? 
 
 
 
@@ -440,6 +495,8 @@ Puromycin_treat <- Puromycin %>%
   filter(state == "treated") %>% 
   mutate(one_over_v = 1/rate) %>% 
   mutate(one_over_s = 1/conc)
+
+head(Puromycin_treat)
 ```
 
 
@@ -456,9 +513,7 @@ How does puromycin affect the K and Vmax of this enzyme?
 
 ##visualize the model under the double reciprocal scale and the original scale
 Make your plots here: 
+ 
 
 
 
-
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
