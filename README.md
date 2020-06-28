@@ -8,28 +8,33 @@ UC Davis
 lukli@ucdavis.edu 
 
 # Content
-This repository has 10 activities: 
+This repository has 12 activities: 
 
-1) Design custom palette in R 
-2) Formatting ggplots – faceting, scales, guides, and themes
-
-
-3) One-way ANOVA and the compact letter display
-4) Randomized block design ANOVA 
-5) Multifactorial deign ANOVA and interactions
-6) Repeated measures ANOVA
-7) Split field and nested experimental design
+1) Data wrangling with dplyr and tidyr 
+2) Formatting ggplots – faceting, scales, guides, and themes 
+3) Design custom palette in R 
 
 
-8) Correlation and linear regression
-9) Polynomial curve fitting 
-10) Logistic regression  
+4) One-way ANOVA and the compact letter display 
+5) What to do when ANOVA assumption fails 
+6) Randomized block design ANOVA 
 
-This first two units focus on how to make pretty plots. 
 
-Units 3 - 7 focus on ANOVA and Tukey tests. 
+7) Multifactorial deign ANOVA and interactions 
+8) Repeated measures ANOVA
+9) Split field and nested experimental design
 
-Units 8 - 10 focus on regression. 
+
+10) Correlation and linear regression
+11) Polynomial curve fitting 
+12) Logistic regression  
+
+
+This first three units focus on how to tidy data and pretty plots. 
+
+Units 4 - 9 focus on ANOVA and Tukey tests. 
+
+Units 10 - 12 focus on regression. 
 
 
 Formal math is kept to minimum. The series focus on basic concepts, interpretation and execution in R. 
