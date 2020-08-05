@@ -29,6 +29,7 @@ This repository has 12 activities:
 11) Polynomial curve fitting 
 12) Logistic regression  
 
+13) Proportions, contingency tables and enrichment 
 
 This first three units focus on how to tidy data and pretty plots. 
 
