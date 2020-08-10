@@ -8,7 +8,7 @@ UC Davis
 lukli@ucdavis.edu 
 
 # Content
-This repository has 12 activities: 
+This repository has 13 activities: 
 
 1) Data wrangling with dplyr and tidyr 
 2) Formatting ggplots – faceting, scales, guides, and themes 
