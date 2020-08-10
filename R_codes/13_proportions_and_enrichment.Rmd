@@ -53,7 +53,7 @@ For example, an observation can only be "yes" or "no", but not both.
 that is the meansurement of one observation does not affect the other, and there are no repeated measures.  
 
 Now let's do an example. Say I self a heterozygous plant of genotype Aa. 
-I expect 1/4 AA, 1/2 Aa and 1/4aa. 
+I expect 1/4 AA, 1/2 Aa and 1/4 aa. 
 And in this hypothetical experiment, among 96 F1 offspring, 
 I have 32 AA, 54 Aa, and 10 aa.
 
@@ -73,10 +73,10 @@ The second argument is the expected proportions, which is 0.25, 0.5 and 0.25.
 In this case, we have Chi-squared = 11.583, and p value = 0.003. 
 The p value is computed from the Chi-squared distribution. 
 In this case, we have 2 degrees of freedom, which is number of categories - 1.
-We have 3 categories, AA, Aa and aa, so df = 3 - 1 = 1. 
+We have 3 categories, AA, Aa and aa, so df = 3 - 1 = 2. 
 
 ```{r}
-#don't worry about this chunck. It simulates a Chi-squared distribution if df = 2 and n = 10^4.
+#don't worry about this chunck. It simulates a Chi-squared distribution of df = 2 and n = 10^4.
 #The vertical line is x = 11, our observed Chi-squared in this experiment 
 set.seed(666)
 rchisq(n = 10^4, df = 2) %>% 
@@ -87,8 +87,8 @@ rchisq(n = 10^4, df = 2) %>%
   theme_classic()
 ```
 
-The null hypothesis of Chi-squared is 0. A Chi-squared value of 0 would mean observed data fits expected proportions perfectly.
-The p value is computated as the right hand side area under the graph when x > Chis-quared, which means
+The null hypothesis of Chi-squared is 0. A Chi-squared value of 0 would mean observed data fit expected proportions perfectly.
+The p value is computated as the right hand side area under the curve when x > Chis-quared, which means
 p value is the probability of getting a Chi-squared value equal or larger than observed, if the null hypothesis were true.
 The larger the Chi-sqaure, the less likely the null hypothesis is true. 
 In this case the p value is very small, so the observed data did NOT fit the expected observations. 
@@ -103,7 +103,7 @@ It means that there is more AA and Aa than expected, and less aa than expected.
 In a real world example, this could mean a lethality in the aa genotype, where aa seeds were aborted. 
 
 You noticed that here I used 96 plants, which was quite a lot. 
-What will happen if there were less plants. 
+What will happen if there were less plants?
 Say in a hypothetical experiment, I only have 20 F1 offspring from the selfing the Aa parent.
 And I got 7 AA, 11 Aa, and 2 aa, which is similar in proportion as the n = 96 example above. 
 If I put these numbers into a Chi-squared test, what will happen? 
@@ -123,8 +123,8 @@ Now let's switch gears to talk about a related analysis, which is contingency ta
 which is an analysis to study classfications and association. 
 
 Say in a hypothetical transcriptome study, 30000 genes were detected as expressed. 
-Among them, 18000 genes were upregulated by UV light treatment, whereas 12000 genes were downregulated or unchanged. 
-Meanwhile, 24000 genes were upregulated by heat stress, where as 6000 were downregulated or unchanged. 
+Among them, 18000 genes were upregulated by heat treatment, whereas 12000 genes were downregulated or unchanged. 
+Meanwhile, 24000 genes were upregulated by UV, where as 6000 were downregulated or unchanged. 
 
 Among these genes, 15000 genes were both upregulated in UV and heat, 9000 up in only UV but not heat,
 3000 up in only heat and not UV, and 3000 not changed in both UV and heat. 
@@ -196,11 +196,11 @@ it's 1.67 times more likely that a UV-upregulated genes is also heat-upregulated
 Don't worry about why the Fisher estimate is not exactly the same as the arithmatic OR, 
 and don't worry about how the confidence interval is computed. 
 The null hypothesis of OR is 1, meaning there is equal chance than UV-regulated genes is heat-upregulated, or not. 
-The farther away OR is from 1, the small the p value, and less likely the null hypothesis is true. 
+The farther away OR is from 1, the smaller the p value, and less likely the null hypothesis is true. 
 
 
 Let's do another example for Fisher exact test.
-In this hypothetical example, a person claims they can tell the difference between a can of coca cola and pepsi. 
+In this hypothetical example, a person claims they can tell the difference between a can of coca cola and and a can of pepsi. 
 Here is the contigency table:
               | acual coke | actual pepsi | total
 claimed coke  |  8         |    2         |  10
@@ -208,7 +208,7 @@ claimed pepsi |  3         |    7         |  10
 total         |  11        |    9         |  20 
 
 The columns are whether the drink was actually a cola or a pepsi.
-The rows are whether the person claims it was a colo or a pepsi. 
+The rows are whether the person claims it was a cola or a pepsi. 
 
 Can this person actually tell the difference between a coke and a pepsi? 
 Let's feed the contingency table into the fisher.test() function. 
@@ -239,7 +239,7 @@ Oftentimes, you might be interested in whether a sample from a population is enr
 A common application is gene ontology enrichment. 
 Every gene in the genome is annotated with a certain number of "gene ontology" terms, for example "cell cycle", "transcription", etc. 
 Say I have 100 genes that is upregulated in the east side of the stem in the morning of a sunflower plant. 
-The sunflower plant track the sun during the day from east to west, and re-orient to the east during the morning. 
+The sunflower plant track the sun during the day from east to west, and re-orient to the east during the night. 
 The reason it can do that is because during the day the east side of the stem grows faster, pushing the head towards the west.
 And during the night, the west side of the stem grows faster, pushing the head back to the east. 
 
@@ -250,10 +250,10 @@ So you want to know is the east side of the stem enriched for genes related to g
 To answer this question, there are a few other numbers you have to know.
 (I made up these numbers, just as an example.)
 Say in your experiment, you detected 12000 expressed genes,
-among which 2000 of them have the annotation of growth and cell elongation related. 
+among which 2000 of them have the annotation of growth or cell elongation-related. 
 
 And you have a list of 100 upregulated genes from 12000 expressed genes in this morning-east stem sample, 
-among which 40 of them have the annotation of growth and cell elongation related.
+among which 40 of them have the annotation of growth or cell elongation-related.
 
 There are actually two tests to approach this problem.
 The first one is using a contigency table. SO let's set up the contingency table. 
@@ -347,8 +347,8 @@ If the number of observations are large enough, they should give very similar re
 #Excercise 
 ##Chi-squared goodness of fit test
 You did two crosses. 
-You crossed a Aa mother to a AA father, you got 30 aa and 60 Aa. 
-You crossed a AA mother to a Aa father, you got 55 aa and 50 Aa. 
+You crossed a Aa mother to a AA father, you got 30 Aa and 60 AA. 
+You crossed a AA mother to a Aa father, you got 55 Aa and 50 AA. 
 (The expected proportions should be 1:1.)
 
 Is there distorsion of segregation ratio in either of the crosses? 
@@ -378,6 +378,7 @@ Does the conclusions for the tests agree with each other?
 
 
 
+ 
 
 
 
