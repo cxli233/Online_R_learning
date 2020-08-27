@@ -87,7 +87,7 @@ penguins %>%
   theme_minial() +
   theme(...)
 
-You should also use the palette you designed from the first activity 
+You should also use the palette you designed from the last activity 
 
 Make your plot here:
 ```{r}
@@ -381,7 +381,7 @@ If n > 100 per group, then just use the box plot with no dots. It's too many dot
 
 #Exercise 
 Now try it out yourself!
-Compare the bill width across the three species and find out which one has the widest bill. 
+Compare the bill depth across the three species and find out which one has the deepest bill. 
 
 ##visualize the data
 ```{r}

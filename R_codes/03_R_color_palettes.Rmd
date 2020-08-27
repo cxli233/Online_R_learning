@@ -361,7 +361,7 @@ ggplot(choropleth, aes(long, lat, group = group)) +
   scale_fill_gradientn(colours = Higanbana_c)  #call the colors here
 ``` 
 
-Well, not too different from sinferno. But I do like the red and black colors. 
+Well, not too different from inferno. But I do like the red and black colors. 
 
 #Now design your own palette and try it out! 
 Design the best palette you can and send them to Li. 
