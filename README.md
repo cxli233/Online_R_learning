@@ -48,8 +48,11 @@ Each unit builds upon the previous. After each unit, there is also an exercise.
 4) Run .Rmd files under the /R_codes folder.   
 
 
-
-
+# Side note
+If you experience problems with loading data, i.e. "path does not exist" or "file does not exist in working directory"
+Try this: 
+In your RStudio, under the Preview (or Knit) drop down menu, 
+go the Knit Directory tab, and select Project Directory, NOT Document Directory.  
 
 
 
