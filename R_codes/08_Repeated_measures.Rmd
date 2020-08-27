@@ -353,8 +353,7 @@ How would you interpret the ANOVA table?
 
 
 ##Tukey test
-Say we are interested in knowing which variety performs better each nitrogen input. 
-How should you set up the Tukey test? 
+ 
  
 Pull out the cld output and interpret the results. 
 ```{r}
