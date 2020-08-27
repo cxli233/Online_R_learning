@@ -1,0 +1,35 @@
+---
+title: "How to design new color palettes in R key"
+author: "Chenxin Li"
+date: "6/20/2020"
+output:
+  html_notebook 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+ 
+```{r}
+library(ggplot2) 
+library(tidyr)
+library(dplyr)
+library(readr)
+library(readxl)
+library(RColorBrewer)
+library(viridis)
+```
+ 
+ 
+#Now design your own palette and try it out! 
+Design the best palette you can and send them to Li. 
+You should probably make one just for discrete variables and don't worry about making one for continuous variables.  
+
+Check:
+Are the colors easily discernable? 
+Is the palette colorblind friendly? 
+
+
+
+No keys for this lesson. There is no single correct or best answer.  

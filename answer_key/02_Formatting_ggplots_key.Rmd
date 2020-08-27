@@ -1,0 +1,87 @@
+---
+title: "Formatting ggplots key"
+author: "Chenxin Li"
+date: "6/20/2020"
+output:
+  html_notebook 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Introduction
+
+The ggplot package in R is a powerful plotting tool. 
+It's easy to use, but you can make complex plots with rather simple syntax. 
+
+"gg" stands for graphical grammar - 
+It means different layers of objects and elements are layered on top of the previous to generate the plot.
+You can find the ggplot cheatsheet here: https://rstudio.com/wp-content/uploads/2016/11/ggplot2-cheatsheet-2.1.pdf 
+
+This workbook will go over different features of ggplot
+1) geoms
+2) scales
+3) guides
+4) themes 
+5) facets
+
+...and how to make the clearest, prettiest ggplot possible. 
+
+#load packages
+You might need to install some of these packages 
+```{r}
+library(ggplot2) 
+library(tidyr)
+library(dplyr)
+library(readr)
+library(readxl)
+```
+
+
+ 
+#Exercise - Now time for you to try
+
+Let's use the R built-in dataset CO2 as example
+Ref: Potvin, C., Lechowicz, M. J. and Tardif, S. (1990), Ecology, 71, 1389–1400.
+```{r}
+head(CO2)
+str(CO2)
+```
+
+Task: produce a plot that includes the info for Type and Treatment, with uptake on Y axis. 
+Let's say we are interested in the effect of "Treament" in each Type. 
+
+
+
+Hint:
+
+1) What should be on the x axis?
+2) What variable do you color or fill with?
+3) What faceting layout do you want to use? 
+
+
+Now try to make the best plot you can!
+```{r}
+CO2 %>% 
+  ggplot(aes(x = Treatment, y = uptake)) +
+  facet_grid(. ~ Type, switch = "x") + 
+  geom_point(aes(fill = Treatment), size = 3, color = "white", shape = 21,
+             position = position_jitter(0.1, seed = 666)) +
+  stat_summary(geom = "errorbar", fun.data = mean_se, width = 0.2) +
+  scale_fill_manual(values = c("burlywood3", "slateblue3"),
+                    limits = c("nonchilled", "chilled")) +
+  labs(x = "Type") +
+  theme_minimal()+
+  theme(legend.position = "top") +
+  theme(axis.line = element_line(size = 1.2)) + 
+  theme(panel.spacing.x = unit(1, "lines")) +
+  theme(text = element_text(size = 18, color = "black", face = "bold")) +
+  theme(axis.text.x = element_blank()) +
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) +
+  theme(strip.placement = "outside")
+```
+
+
+
+ 

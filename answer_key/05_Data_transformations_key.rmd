@@ -1,0 +1,156 @@
+---
+title: "Data transformations key"
+author: "Chenxin Li"
+date: "6/19/2020"
+output: html_notebook 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+#load packages
+```{r}
+library(emmeans)  
+library(multcomp)
+library(multcompView)
+library(ggplot2) 
+library(tidyr)
+library(dplyr)
+library(readr)
+library(readxl)
+library(RColorBrewer)
+library(viridis)
+```
+
+```{r}
+C_elegans_lethality <- read_excel("data/C_elegans_lethality.xlsx")
+head(C_elegans_lethality)
+```
+
+ 
+
+#Exercise
+Now you have learned Wilcoxon tests and data transformation, it's time for you to practice!
+
+##Wilcoxon test
+Run pairwise wilcoxon tests on the C elegans lethality data and compare the results to that of the logit transformed Tukey tests.
+```{r}
+pairwise.wilcox.test(x = C_elegans_lethality$proportion, g = C_elegans_lethality$treatment)
+```
+Are the your conclusions consistent between the two methods? 
+
+Yes, the mean of the treatments are all statistically different from each other. 
+
+
+##data transformation
+Here are the results from an experiment. 
+```{r}
+stem_data <- read_excel("data/LU-Matand - Stem Data.xlsx")
+head(stem_data)
+```
+In this experiment, the researchers were lookling at the effect of explant in daylily tissue culture. 
+(Data from Matand et al. 2020. BMC Plant Bio)
+They took three types of explant (cut stem, inverted stem and split stem), 
+put those on agar plates and examined how well shoots regrew from them. 
+At the end of the experiment, they counted the number of shoots from each tissue (Buds_Shoots column in the table).  
+There were other factors in this experiment, but let's ignore them for now. 
+They did this for a total of 19 daylily cultivars. For the sake of this exercise, let't just use one of the cultivars - "Alias".
+
+```{r}
+Alias <- stem_data %>% 
+  filter(Variety == "Alias")  
+
+head(Alias)
+```
+ 
+###Visualize the data using Explant on x axis and Buds_Shoots on y axis. 
+Label the y axis "Number of regenerated shoots" 
+```{r}
+Alias %>% 
+  ggplot(aes(x = Explant, y = Buds_Shoots)) +
+  geom_point(aes(fill = Explant), size = 3, color = "white", shape = 21,
+             position = position_jitter(0.1, seed = 666)) +
+  scale_fill_brewer(type = "qual", palette = "Dark2") +
+  labs(y = "Number of regenerated shoots") +
+  theme_minimal() +
+  theme(
+    axis.line = element_line(size = 1.2),
+    text = element_text(size = 14, color = "black", face = "bold"),
+    axis.text = element_text(color = "black"),
+    legend.position = "none"
+  )
+```
+Looking at the plot, do treatments have even spread?
+No. Split stem has a lot spread. 
+
+
+###Calculate the summary statitics using group_by() and summarise() for Buds_Shoots
+```{r}
+ Alias %>% 
+  group_by(Explant) %>% 
+  summarise(
+    mean = mean(Buds_Shoots),
+    var = var(Buds_Shoots)
+  )
+```
+Are the variances of treatments within a two-fold range?  
+No. 
+
+###linear model
+Which data transformation would be helpful for this experiment?  
+Check the asumptions (normality & equal variance) of BOTH original AND transformed data. 
+Does the data transformation help? 
+
+```{r}
+#set up linear models in this chunck
+model_1 <- lm(Buds_Shoots ~ Explant, data = Alias)
+model_log <- lm(log10(Buds_Shoots) ~ Explant, data = Alias)
+```
+
+```{r}
+#check assumptions in this chunch
+plot(model_1, which = c(1, 2, 3))
+```
+ 
+```{r}
+plot(model_log, which = c(1, 2, 3))
+```
+ 
+ The log-transformed model looks better. 
+ 
+
+
+###interpretation
+Run ANOVA and Tukey tests for BOTH original AND transformed data.
+Did data transformation (or the lack of) change your conclusions? 
+```{r}
+anova(model_1)
+anova(model_log)
+```
+
+```{r}
+estimate_1 <- emmeans(model_1, pairwise ~ Explant)
+estimate_log <- emmeans(model_log, pairwise ~ Explant)
+
+estimate_1$contrast
+estimate_log$contrast
+```
+
+Essentially the same results for no transformation and log transformation
+###reporting
+Report the estimated means and confidence intervals for the treatments in the cld format. 
+Don't forget to de-transform if you go with a data transformation. 
+
+Because data transformation didn't change the conclusion at all, for reporting I'm going with the untransformed model 
+```{r}
+cld(estimate_1$emmeans, Letters = letters)  
+```
+
+
+
+
+
+
+

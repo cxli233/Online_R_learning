@@ -1,0 +1,155 @@
+---
+title: "Repeated measures keys"
+author: "Chenxin Li"
+date: "6/21/2020"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+  
+#Load packages
+```{r}
+library(lme4)
+library(lmerTest)   #two new packages
+
+
+library(emmeans)  
+library(multcomp)
+library(multcompView)
+library(ggplot2) 
+library(tidyr)
+library(dplyr)
+library(readr)
+library(readxl)
+library(RColorBrewer)
+library(viridis)
+```
+
+ 
+
+#Exercise
+Now you have learned how to deal with repeated measures in an experiment, 
+it's time for you to practise.
+
+We will use a mint growth experiment as an example.
+In this experiment, the researchers looked at the effect of 5 treatments (A - F) on mint growth.
+Each treatment has 3 pots. 
+Each pot has 4 plants. The treatment was applied to the pot, not the individual plants. 
+The growth of each plant in each pot was measured. 
+(Data from UC Davis Plant Sciences course PLS205, Winter 2017) 
+
+```{r}
+mint_data <- read_csv("data/Mint.csv")
+head(mint_data)
+tail(mint_data)
+```
+There is a problem with how the data were recorded. Maybe it's not obvious to you.
+In each treatment, the name of the Pot is all Pot_1, Pot_2 and Pot_3.
+However, in the actual experiment, Pot_1 from Treatment A is not the same Pot_1 for Treatment B, or CDE. 
+The same applies to Pot_2 and Pot_3.
+Simply put, the pots in each treatment need to have their own unique identifier. 
+Let's fix that first
+
+```{r}
+mint_data <- mint_data %>% 
+  mutate(Pot.ID = paste(Pot, Trtmt))
+
+head(mint_data)
+```
+ 
+Now each pot has their own unique ID. 
+
+
+##visualization 
+
+make the best plot you can to visualize the data.
+
+What to put on x axis?
+What to color/fill with?
+Any faceting that you want to use? 
+
+
+Make your plot here:
+```{r}
+mint_data %>% 
+  ggplot(aes(x = Trtmt, y = Growth)) +
+  geom_point(aes(fill = Trtmt), size = 3, color = "white", shape = 21,
+             position = position_jitter(0.1, seed = 666)) +
+  scale_fill_brewer(type = "qual", palette = "Dark2") +
+  labs(y = "Growth",
+       x = "Treatment") +
+  theme_minimal() +
+  theme(
+    axis.line = element_line(size = 1.2),
+    text = element_text(size = 14, color = "black", face = "bold"),
+    axis.text = element_text(color = "black"),
+    legend.position = "none"
+  )
+```
+
+
+
+##what is being repeated measured in this experiment?
+Can you tell which entity was repeatly measured? 
+
+Fill in the table and write down the model.
+What are the sources of variation?
+What factors are they? (treatment? block? observational units? experimental units?)
+How many levels in each?
+
+
+| source | factor       | levels |   
+| Treat  | treatment    | 6      |
+| Pot    | EU           | 18     |   3 pots per treatment, 3*6 = 18
+| Plant  | OU           | 72     | 
+ 
+What is the experimental unit for treatment? Pot
+What is the observational unit?  Plant
+
+Set up the linear model. 
+
+##check assumptions of ANOVA
+```{r}
+model_mint <- lmer(Growth ~ Trtmt + (1|Pot.ID), data = mint_data)
+```
+
+Normality?
+```{r}
+qqnorm(resid(model_mint))
+```
+Pretty ok.
+
+Equal variance? 
+```{r}
+plot(model_mint)
+```
+Fine.
+
+##run ANOVA
+How would you interpret the ANOVA table?
+```{r}
+anova(model_mint)
+```
+Means are statistically different across treatments (F = 16, P < 0.05)
+
+##Tukey test
+
+Pull out the cld output and interpret the results. 
+```{r}
+estimate_mint <- emmeans(model_mint, pairwise ~ Trtmt)
+cld(estimate_mint$emmeans, Letters = letters)
+```
+
+Treatment F are numerically highest, 
+although not significantly differnt from and treatments D and E (sharing letter c) 
+
+
+
+
+
+
+
+
