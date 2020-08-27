@@ -353,11 +353,7 @@ How would you interpret the ANOVA table?
 
 Which pasture treatment gave the best beta-carotene content? 
 
-Pull out the cld output. What does it tell you? 
-```{r}
-
-```
-
+ 
  
 
 
