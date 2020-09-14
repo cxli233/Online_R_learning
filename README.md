@@ -8,8 +8,9 @@ UC Davis
 lukli@ucdavis.edu 
 
 # Content
-This repository has 13 activities: 
+This repository has 14 activities: 
 
+0) Very basics of R coding  
 1) Data wrangling with dplyr and tidyr 
 2) Formatting ggplots – faceting, scales, guides, and themes 
 3) Design custom palette in R 
