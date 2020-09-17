@@ -75,10 +75,10 @@ These are clearly non-linear, so if you try to fit a straight line, you would be
 Each sample starts out as an exponential - fluorescenece increases exponentially as cycle number increaes.
 However, at some point, the increase of flurescence slows down, and eventually flattens (we call it saturation). 
 
-Samples with higher template concentration shoots up first and reaches saturation first.
+Samples with higher template concentration shoot up first and reach saturation first.
 Samples with no temple will be flat lines. 
 
-This is a clear example of logistic curve. 
+This is a clear example of the logistic curve. 
 Logistic curves start out as an exponential, but slow down at some point, and eventually stop increasing.  
 
 Logistic curves have the following equation:
@@ -129,10 +129,10 @@ data.frame(
   theme(text = element_text(size = 12, color = "black", face = "bold")) +
   theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
 ```
-And you can see and the reverse function of logistic, the logit curve is flipping the x and y axis of the logistic curve. 
+And you can see as the reverse function of logistic, the logit curve is flipping the x and y axis of the logistic curve. 
 
 The logistic curve is used a lot in modeling population growth. 
-At the exponential phase, the pupulation increases rapidly.
+At the exponential phase, the population increases rapidly.
 However, as resources in the habitat get depleted, the rate of growth slows down.
 When resources become scarce, the population size stops growing. 
 Ecologists call that "the population has reached the carrying capacity of its habitat". 
@@ -144,10 +144,10 @@ As the end, all primers and/or dNTPs are used up, and the PCR products stop incr
 Molecular biologist call that "the PCR has reached saturation". 
 
 Lastly, any variables in the range 0 - 1 can be better modeled by logistic regression than linear regression. 
-Near 0 or 1, the curve will be in its flat regions, and in between 0 and 1, the curve will be in its exponential region. 
+Near 0 or 1, the curve will be at its flat regions, and in between 0 and 1, the curve will be in its exponential region. 
 
 #How to set up a logistic regression
-As an example, let's fit a curve for the well A6 of my qPCR experiment,
+As an example, let's fit a curve for well A6 of my qPCR experiment,
 so our formula will be A6 ~ Cycle. 
 
 To extend linear model to non-linear curves, the linear model have to be extended to a generalized linear model.
@@ -174,9 +174,9 @@ qPCR_new <- qPCR %>%
 model_A6 <- glm(A6_scaled ~ Cycle, data = qPCR_new, family = binomial(link = "logit"))
 ```
 The above line sets up the regression model. 
-Note that "family = binomial" actually referrs to the fact that now the scale is between 0 and 1.
+Note that "family = binomial" actually refers to the fact that now the scale is between 0 and 1.
 And "0 vs. 1" is called "binomial".
-'link = "logit"', referres to the fact that the inverse function of logistic is logit. 
+'link = "logit"', refers to the fact that the inverse function of logistic is logit. 
 
 Y = logistic(ax + b) <=> logit(Y) = ax + b. 
 Where logit(Y) = log(Y/1-Y),
@@ -247,7 +247,7 @@ and the shape is bending downwards (convex).
 This is a very important number in epidemiology. 
 In a viral epidemic, the number of infected cases can be modeled by a logistic curve.
 Before the infection point, we know we are going to get more cases every day.
-After the infection point, we know are going get less cases every day, 
+After the infection point, we know we are going get less cases every day, 
 and the total number of cases will soon stop increasing. 
 So being able to know where the inflection point is will help guide how to distribute efforts in an epidemic. 
 
@@ -273,11 +273,7 @@ If you plug it in, you will find the y value at the inflection point is Ymax/2.
 
 ```{r}
 #Y value at inflection point
-Ymax_A6 /(1 + exp(-(0.3486 * 10.85 - 3.7921)))
-```
-
-```{r}
-(Ymax_A6 /(1 + exp(-(0.3486 * 10.85 - 3.7921)))) / Ymax_A6  
+1 /(1 + exp(-(0.3486 * 10.85 - 3.7921)))
 ```
 
 That gives us ~1/2! 
@@ -285,7 +281,7 @@ That gives us ~1/2!
 Note that this is a very powerful prediction.
 In an on going epidemic, we don't know what the maximal number of cases will be.
 However, using existing data, we can guess the inflection point.
-The predicted total number of cases will be twice the amount of cases at inflection point 
+The predicted total number of cases will be about twice the amount of cases at the inflection point.
 
 
 #Logistic regression on population growth 
@@ -345,7 +341,7 @@ As a result, the daily new cases is highest at the inflection point.
 
 
 
-Let's say we want to model a population (in this case viral infections) that has not reaches its saturation. 
+Let's say we want to model a population (in this case viral infected population) that has not reaches its saturation. 
 And we want to project the growth of the population to the near future. How can we do that? 
 As the example, we will be using only the first half of the Germany data. 
 We have ~120 days of data when this was download, so let's take the first 60 days (since 50 cases) for this example.  
