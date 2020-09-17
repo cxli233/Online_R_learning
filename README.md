@@ -1,10 +1,12 @@
 # Online_R_learning
 Online R learning project for advanced undergrads during the COVID-19 pandemic 
 
-author: Chenxin Li, 
-Grad student 
-Department of Plant Biology,
-UC Davis 
+author: Chenxin Li
+
+Grad student
+
+Department of Plant Biology, UC Davis
+
 lukli@ucdavis.edu 
 
 # Content
@@ -40,22 +42,20 @@ Units 10 - 12 focus on regression.
 
 
 Formal math is kept to minimum. The series focus on basic concepts, interpretation and execution in R. 
+
 Each unit builds upon the previous. After each unit, there is also an exercise. 
 
 # Getting started
 1) Clone the repository to your machine by downloading the zip file
-2) Unzip (and move the “Online_R_learning” directory to whichever you like on your machine).
-3) Open RStudio and create a new project, setting “Online_R_learning” as the working directory. 
-4) Run .Rmd files under the /R_codes folder.   
+2) Unzip (and move the “Online_R_learning-master” folder to whichever folder you like on your machine).
+3) Open RStudio and create a new project: File - New Project. Select Existing Directory.
+4) Set the folder directly containing "R_codes", "data" and "answer_keys" subfolders as the working directory. 
+Important! If you don't set the right folder, R will have trouble loading the data files.  
+5) Open .Rmd files under the R_codes folder: File - Open File.
+6) Under the Knit or Preview drop down menu, hover your mouse on Knit Directory, and select Project Directory. 
+Important! This way R can load the data files. 
 
-
-# Side note
-If you experience problems with loading data, i.e. "path does not exist" or "file does not exist in working directory"
-Try this: 
-In your RStudio, under the Preview (or Knit) drop down menu, 
-go the Knit Directory tab, and select Project Directory, NOT Document Directory.  
-
-
+ 
 
 
 
