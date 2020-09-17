@@ -139,8 +139,8 @@ child_mortality_summmary_2010 <- birth_and_mortality_and_income %>%
   filter(year == 2010) %>% 
   group_by(status) %>% 
   summarise(
-    mean = mean(birth),
-    sd = sd(birth)
+    mean = mean(death_per_1000_born),
+    sd = sd(death_per_1000_born)
   )
 
 child_mortality_summmary_2010
