@@ -114,8 +114,8 @@ You can see the section headers are in blue color.
 To make a new section header, you can type # followed by any text at the first position of any line in the plain text area. 
 In addtion, ## will be a subheader, and ### will be a sub-subheader, and so on. 
 
-You can view all the sections at the file outline. The shortcut is Ctrl+Shift+O for PC and Cmd+Shift+P for Mac. 
-You'll see that section titles will show up at the left.
+You can view all the sections at the file outline. The shortcut is Ctrl+Shift+O for PC and Cmd+Shift+O for Mac. 
+You'll see that section titles will show up at the right to the script area.
 If you click on any section titles, RStudio will jump to that section. 
 
 
@@ -148,7 +148,7 @@ a <- c(1, 2, 3)
 ```
 
 When you run this, something happens. 
-If you look at the environment at the upper left, you should see 'a' shows up as a saved item. 
+If you look at the environment at the upper right, you should see 'a' shows up as a saved item. 
 Remember to use a different name for different items. 
 If you save them as the same name, the later item will just overwrite the previous. 
 
@@ -246,6 +246,11 @@ fruits <- data.frame(
 fruits
 ```
 That will do it. 
+
+To make a new table, you can use the data.frame() command.
+Inside data.frame(), you then type out each columns as vectors.
+In this example, the columns are name and count.
+
 Notice that in a data frame, all members of a column are the same type. 
 For example, the count column is all numeric.
 This is different from a matrix, because in a matrix, all members are the same type across rows and columns. 
@@ -272,7 +277,7 @@ sqrt(log2(my_matrix + 0.5))
 ```
 
 See, nothing complicated, just an interactive calculator. 
-You see how the parentheses of log2() and sqrt() is nested.
+You see how the parentheses of log2() and sqrt() are nested.
 You can imagine if you do this for many steps, there will be too many parentheses to keep track of. 
 To avoid the (((()))) too many nested parentheses problem, you can use the pipe syntax. 
 
