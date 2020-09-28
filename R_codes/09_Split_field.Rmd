@@ -228,17 +228,17 @@ It helps to fill out the table before we set up the model.
 | Phos   | treat  |    2   |
 | Geno   | treat  |    9   |
 | Chamber| EU*    |    4   |
-| Tray   | EU*    |   40!  | 
+| Tray   | EU*    |   40** | 
 | plant  | EU, OU |   360  |  
 
 
 Temp, Phos, and Geno should be starightforward. They are the treatments. 
-Chamber is the EU for temperature. It's not an OU. So it needs to be a random effect.
-Tray is the EU for Phos. It's also not an OU. So it needs to be a random effect too. 
+* Chamber is the EU for temperature. It's not an OU. So it needs to be a random effect.
+* Tray is the EU for Phos. It's also not an OU. So it needs to be a random effect too. 
 Plant is the EU for Geno. But plant is also the OU. So we don't include it in the model. 
 
 
-Maybe you have noticed that there should be 40 trays, not 10. Why?
+** Maybe you have noticed that there should be 40 trays, not 10. Why?
 Because the Tray 1 in chamber 1 is not the same Tray 1 in chamber 2, 3 or 4. 
 There should be 10 trays per chamber, so 10 * 4 = 40 trays total. 
 
