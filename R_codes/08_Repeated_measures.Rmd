@@ -275,7 +275,7 @@ Now you have learned how to deal with repeated measures in an experiment,
 it's time for you to practise.
 
 We will use a mint growth experiment as an example.
-In this experiment, the researchers looked at the effect of 5 treatments (A - F) on mint growth.
+In this experiment, the researchers looked at the effect of 6 treatments (A - F) on mint growth.
 Each treatment has 3 pots. 
 Each pot has 4 plants. The treatment was applied to the pot, not the individual plants. 
 The growth of each plant in each pot was measured. 
@@ -288,7 +288,7 @@ tail(mint_data)
 ```
 There is a problem with how the data were recorded. Maybe it's not obvious to you.
 In each treatment, the name of the Pot is all Pot_1, Pot_2 and Pot_3.
-However, in the actual experiment, Pot_1 from Treatment A is not the same Pot_1 for Treatment B, or CDE. 
+However, in the actual experiment, Pot_1 from Treatment A is not the same Pot_1 for Treatment B, or CDEF. 
 The same applies to Pot_2 and Pot_3.
 Simply put, the pots in each treatment need to have their own unique identifier. 
 Let's fix that first
