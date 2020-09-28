@@ -129,7 +129,7 @@ Coming back to random effects. What is a random effect?
 
 So in this example, what needs to be declared as a random effect?
 The pot needs to be declared as a random effect, 
-since it is both the EU for genotype, and it is the entity of repeated measures. 
+since it is both the EU for genotype and the entity of repeated measures. 
 
 
 #Setting up a mixed effect model
