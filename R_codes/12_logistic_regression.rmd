@@ -203,10 +203,12 @@ finding these observed parameters is beyond chance.
 
 To find out the goodness-of-fit in a logistic regression, we will need the rsq() function
 ```{r}
-rsq(model_A6)
+rsq(model_A6, type = "sse")
 ```
 We have a R^2 of 0.99. Which means 99% of the variation in the data is explained by the model. Exellent. 
-
+The "type = 'sse'" option refers to we are using "sum of squares of error" to estimate R^2.
+Conceptually, 99% of the variation in the data is explained by the model would imply sse is 1%.  
+There are other options to estimate R^2 and don't worry about them. 
 
 #Visualize the model
 It's always a good idea to visualize the model before we draw conclusions from it.
@@ -384,7 +386,7 @@ The reality will probably fall somewhere between the two models.
 ```{r}
 model_germany <- glm(case_scaled ~ days, data = germany_first_half, family = binomial(link = "logit"))
 summary(model_germany)
-rsq(model_germany)
+rsq(model_germany, type = "sse")
 ```
 It looks like our equation will be:
 Cummulative cases = Ymax * logistic(0.132 * days - 5.13) or 
