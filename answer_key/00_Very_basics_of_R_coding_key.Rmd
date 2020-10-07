@@ -2,28 +2,39 @@
 title: "Very basics of R coding"
 author: "Chenxin Li"
 date: "9/12/2020"
-output: html_notebook 
+output:
+  html_document:
+    toc: yes  
+  html_notebook:
+    number_sections: yes
+    toc: yes
+    toc_float: yes
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r}
+library(dplyr)
+```
 
-#Exerice
-Today you have learned some basic syntax of R. Now it's time for you to practice. 
 
-Q1: 
-1: Insert a new code chunk;
-2: make this matrix:
-|1|1|2|2|
-|2|2|1|2|
-|2|3|3|4|
-|1|2|3|4| 
-and save it as an item called my_mat2
-3: select the 1st and 3rd rows and the 1st, 2nd and 4th columns, and save it as an item. 
-4: take the square root for each member of my_mat2, then take log2(), and lastly find the maximum value. Use the pipe syntax.  
-The command for maximum is max().
+# Exerice  
+Today you have learned some basic syntax of R. Now it's time for you to practice.     
+
+* Q1: 
+1) Insert a new code chunk
+2) make this matrix
+
+| 1 | 1 | 2 | 2 |
+| 2 | 2 | 1 | 2 |
+| 2 | 3 | 3 | 4 |
+| 1 | 2 | 3 | 4 | 
+and save it as an item called my_mat2  
+3) select the 1st and 3rd rows and the 1st, 2nd and 4th columns, and save it as an item.   
+4) take the square root for each member of my_mat2, then take log2(), and lastly find the maximum value. Use the pipe syntax.    
+The command for maximum is ```max()```.  
 
 ```{r}
 my_mat2 <- rbind(
@@ -42,12 +53,11 @@ my_mat2 %>%
   max()
 ```
 
-Q2: 
-1: Insert a code chunk;
-2: Use the following info to make a data frame and save it as an item called grades.
-Adel got 85 on the exam, Bren got 83 and Cecil got 93. Their letter grades are B, B, and A, respectively. 
-
-3: Pull out the column with the scores. Use the $ syntax. 
+* Q2: 
+1) Insert a code chunk 
+2) Use the following info to make a data frame and save it as an item called grades.  
+Adel got 85 on the exam, Bren got 83 and Cecil got 93. Their letter grades are B, B, and A, respectively.   
+3) Pull out the column with the scores. Use the ```$``` syntax. 
 
 ```{r}
 grades <- data.frame(
@@ -60,7 +70,6 @@ grades
 
 grades$score
 ```
-
 
 
 

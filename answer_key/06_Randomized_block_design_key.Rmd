@@ -2,26 +2,21 @@
 title: "Randomized Block Design key"
 author: "Chenxin Li"
 date: "6/21/2020"
-output: html_notebook
+output:
+  html_document:
+    toc: yes  
+  html_notebook:   
+    number_sections: yes    
+    toc: yes  
+    toc_float: yes 
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#Introduction 
-
-We went over how to perform one-way ANOVA to compare means of multiple treatments.
-This time we'll cover a common experimental design, that is randomized block design
-
-we'll go over 
-1) What are blocking factors,
-2) Why they may be useful, and
-3) How to analyze an experiment that has blocking factors 
-
-
-
-#load packages
+ 
+# load packages
 ```{r}
 #the same ones we used last time
 library(emmeans)  
@@ -36,7 +31,7 @@ library(RColorBrewer)
 library(viridis)
 ```
 
-#visualize data
+# visualize data
 ```{r}
 head(OrchardSprays)
 ```
@@ -58,31 +53,31 @@ OrchardSprays %>%
 ```
 
 
-#Exercise 
+# Exercise 
 
-Now you have learned how to analyze randomized block experiments. 
-Let's practise that!
+Now you have learned how to analyze randomized block experiments.   
+Let's practise that!  
 
 
-This time we will look at an actual experiment 
+This time we will look at an actual experiment   
 
 ```{r}
 chicken_experiment <- read_csv("data/betacarotenoid.csv")
 head(chicken_experiment)
 ```
 
-The researcher was testing the effect of different pastures (P1 to P5) on the amount of beta-carotene in egg. 
-There were 4 fields (F1 - F4). The fields are the blocking factors.
-In each field, hens were randomly assigned to be fed with one of the 5 pastures. 
-At the end of the experiment, eggs were collected and beta-carotene concentration was assayed. 
-(Data from UC Davis Plant Sciences course PLS205, Winter 2017)
+The researcher was testing the effect of different pastures (P1 to P5) on the amount of beta-carotene in egg.   
+There were 4 fields (F1 - F4). The fields are the blocking factors.  
+In each field, hens were randomly assigned to be fed with one of the 5 pastures.   
+At the end of the experiment, eggs were collected and beta-carotene concentration was assayed.   
+(Data from UC Davis Plant Sciences course PLS205, Winter 2017)  
 
-##visualize the data
-make the best plot you can to visualize the data.
+## visualize the data
+make the best plot you can to visualize the data.  
 
-What to put on x axis?
-What to color/fill with?
-You don't have to include blocking factors in the plot 
+What to put on x axis?  
+What to color/fill with?  
+You don't have to include blocking factors in the plot   
 ```{r}
 chicken_experiment %>% 
   ggplot(aes(x = Pasture, y = Beta)) +
@@ -101,16 +96,17 @@ chicken_experiment %>%
 
  
 
-##setting up the model
+## setting up the model
 
-Fill out the table: 
+Fill out the table:   
 
-What are the sources of variation?
-What factors are they? (treatment? block? observational units? experimental units?)
-How many levels in each?
+What are the sources of variation?   
+What factors are they? (treatment? block? observational units? experimental units?)  
+How many levels in each?   
 
 
-| source | factor    | levels |   
+| source | factor    | levels |  
+|:------:|:---------:|:------:|   
 | Pature | treatment | 5      | 
 | Field  | block     | 4      |
 | Egg    | EU, OU    | 20     |
@@ -120,33 +116,34 @@ What should you include in the model? Set up the linear model.
 model_beta <- lm(Beta ~ Pasture + Field, data = chicken_experiment)
 ```
 
-##check assumptions of ANOVA 
+## check assumptions of ANOVA 
 ```{r}
 plot(model_beta, which = c(1, 2, 3))
 ```
 
-Normality?
-Pretty good.
-Equal variance? 
-There might be a bit more variance at the higher end of fitted values. 
-You can try a log transformation, but I don't think it is very critical here. 
-##Run ANOVA
-How would you interpret the ANOVA table?
+Normality?  
+Pretty good.  
+Equal variance?   
+There might be a bit more variance at the higher end of fitted values.   
+You can try a log transformation, but I don't think it is very critical here.   
+
+## Run ANOVA
+How would you interpret the ANOVA table?  
 ```{r}
 anova(model_beta)
 ```
-Fields did not contributed much to the variation.
-The means are statistically different across different pastures. 
+Fields did not contributed much to the variation.  
+The means are statistically different across different pastures.    
 
-##Run Tukey tests and show cld
+## Run Tukey tests and show cld  
 ```{r}
 estimate_beta <- emmeans(model_beta, pairwise ~ Pasture)
 cld(estimate_beta$emmean, Letters = letters)
 ```
 
-Which pasture treatment gave the best beta-carotene content? 
+Which pasture treatment gave the best beta-carotene content?   
 
-P5 is the higest, although not significantly different from P4 and P3, which all shares the letter c.  
+P5 is the higest, although not significantly different from P4 and P3, which all shares the letter c.    
 
  
 

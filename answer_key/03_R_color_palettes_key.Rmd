@@ -3,7 +3,12 @@ title: "How to design new color palettes in R key"
 author: "Chenxin Li"
 date: "6/20/2020"
 output:
-  html_notebook 
+  html_document:
+    toc: yes  
+  html_notebook:   
+    number_sections: yes    
+    toc: yes  
+    toc_float: yes   
 ---
 
 ```{r setup, include=FALSE}
@@ -22,14 +27,16 @@ library(viridis)
 ```
  
  
-#Now design your own palette and try it out! 
-Design the best palette you can and send them to Li. 
-You should probably make one just for discrete variables and don't worry about making one for continuous variables.  
+# Now design your own palette and try it out! 
+Design the best palette you can and send them to Li.   
+You should probably make one just for discrete variables   
+and don't worry about making one for continuous variables.     
 
-Check:
-Are the colors easily discernable? 
-Is the palette colorblind friendly? 
+Check:   
+
+1) Are the colors easily discernable? 
+2) Is the palette colorblind friendly?    
 
 
 
-No keys for this lesson. There is no single correct or best answer.  
+No keys for this lesson. There is no single correct or best answer.     

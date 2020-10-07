@@ -2,7 +2,13 @@
 title: "One-way ANOVA and the compact letter display key"
 author: "Chenxin Li"
 date: "6/20/2020"
-output: html_notebook
+output:
+  html_document:
+    toc: yes  
+  html_notebook:   
+    number_sections: yes    
+    toc: yes  
+    toc_float: yes  
 ---
 
 ```{r setup, include=FALSE}
@@ -10,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
  
 
-#load packages
+# load packages
 ```{r}
 library(emmeans) #three new packages you might need to install them 
 library(multcomp)
@@ -25,27 +31,20 @@ library(RColorBrewer)
 library(viridis)
 ```
 
-#data
+# data
 
-https://github.com/allisonhorst/palmerpenguins 
-Ref: Gorman KB, Williams TD, Fraser WR (2014) PLoS ONE 9(3): e90081. https://doi.org/10.1371/journal.pone.0090081 
+https://github.com/allisonhorst/palmerpenguins   
+Ref: Gorman KB, Williams TD, Fraser WR (2014) PLoS ONE 9(3): e90081.   https://doi.org/10.1371/journal.pone.0090081   
 ```{r}
 remotes::install_github("allisonhorst/palmerpenguins") #download the data from Github.
 #you might need to install the "remotes" package
 library(palmerpenguins)
 ```
 
-```{r}
-head(penguins)
-str(penguins)
-penguins %>% 
-  group_by(species) %>% 
-  count()
-```
-
-
-#data visualization
  
+
+
+# data visualization
 ```{r}
 wisteria <- c("grey65", "burlywood3", "khaki2", "plum1", "lightcyan2", "cornflowerblue", "slateblue3")
 
@@ -67,109 +66,12 @@ wisteria <- c("grey65", "burlywood3", "khaki2", "plum1", "lightcyan2", "cornflow
 ```
 
  
- 
-```{r}
-length_summary <- penguins %>% 
-  filter(is.na(bill_length_mm) == F) %>% 
-  group_by(species) %>% 
-  summarise(
-    mean = mean(bill_length_mm),
-    var = var(bill_length_mm),
-    sd = sd(bill_length_mm),
-    n = n()
-  )
-
-head(length_summary)
-```
-
-#stat
-##setting up a liner model 
-To perform an ANOVA in R, a good way to start is to set up a linear model first. 
-In a one-way ANOVA, it follows the form lm(y ~ x),
-where lm stands for linear model, 
-y is dependent variable
-x is independent variable 
-
-```{r}
-model_bill.length <- lm(bill_length_mm ~ species, data = penguins) #don't forget to specify which data using data = argument
-```
-
-
-```{r}
-plot(model_bill.length, which = 2)
-```
- 
-
-```{r}
-plot(model_bill.length, which = c(1, 3))
-```
-
-
-##how to interpret an ANOVA table
-```{r}
-anova(model_bill.length)
-```
-
- 
-##how to do Tukey test
-
-
-```{r}
-estimate_bill <- emmeans(model_bill.length, pairwise ~ species)
-```
-
- 
-```{r}
-estimate_bill$contrasts
-```
- 
-
-
- 
-##How do I report the resuls of a Tukey test?
- 
-```{r}
-cld(estimate_bill$emmeans, Letters = letters)
-```
-
- 
-
-
-##publication quality reporting
- 
-```{r}
-#I'm going to use my wisteria palette
-wisteria <- c("grey65", "burlywood3", "khaki2", "plum1", "lightcyan2", "cornflowerblue", "slateblue3")
-```
-
-
-```{r}
-penguins %>% 
-  ggplot(aes(x = species, y = bill_length_mm)) +
-  geom_boxplot(aes(fill = species),            #You can make a box plot too!
-               alpha = 0.8, width = 0.7) +            
-  annotate(geom = "text",     #you can use the annotate funtion to add the letter grouping of cld
-           label = c("a", "c", "b"),   
-           x = c(1, 2, 3),             #you can also do this in PPT or illustrator or Inkscape 
-           y = c(48, 60, 57),   
-           size = 5, fontface = "bold") +
-  scale_fill_manual(values = wisteria[c(1, 3, 6)]) +
-  labs(x = "Species",
-       y = "Bill length") +
-  theme_minimal() +
-  theme(legend.position = "none") +
-  theme(axis.line = element_line(size = 1.2)) +
-  theme(text = element_text(size = 12, color = "black", face = "bold")) +
-  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
-```
-   
-
-
-#Exercise 
+  
+# Exercise 
 Now try it out yourself!
 Compare the bill depth across the three species and find out which one has the widest bill. 
 
-##visualize the data
+## visualize the data
 ```{r}
 head(penguins)
 ```
@@ -193,32 +95,32 @@ penguins %>%
 ```
 
 
-##set up the linear model and check assumptions
+## set up the linear model and check assumptions
 ```{r}
 model_depth <- lm(bill_depth_mm ~ species, data = penguins)
 plot(model_depth)
 ```
 Prety okay 
 
-##run ANOVA and interpret the ANOVA table
+## run ANOVA and interpret the ANOVA table
 ```{r}
 anova(model_depth)
 ```
 F = 359, and P value is very small. Reject the null hypothesis of depth being equal across three species. 
 
 
-##run Tukey tests and interpret the contrast
+## run Tukey tests and interpret the contrast
 ```{r}
 estimate_depth <- emmeans(model_depth, pairwise ~ species)
 estimate_depth$contrast
 ```
 
-##report the compact letter display and interpret the cld output
+## report the compact letter display and interpret the cld output
 ```{r}
 cld(estimate_depth$emmeans, Letters = letters)
 ```
-Gentoo has the least deep bill. 
-The other two species are not statistically different from each other. 
+Gentoo has the least deep bill.   
+The other two species are not statistically different from each other.    
 
 
  

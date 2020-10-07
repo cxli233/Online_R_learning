@@ -3,14 +3,19 @@ title: "Logistic Regression key"
 author: "Chenxin Li"
 date: "6/21/2020"
 output:
-  html_notebook: default
+  html_document:
+    toc: yes  
+  html_notebook:   
+    number_sections: yes    
+    toc: yes  
+    toc_float: yes
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#load packages
+# load packages
 ```{r}
 library(rsq)  # a new package
 
@@ -29,8 +34,8 @@ qPCR <- read_delim("data/SYBR_Green.txt", delim = "\t")
 head(qPCR)
 ```
 
-In this table, each row is a PCR cycle. We have 36 rows, so 36 PCR cycles. 
-Each column is a PCR reaction. I was doing the experiment in a 96-well plate, so the data are spreat out in 96 columns.
+In this table, each row is a PCR cycle. We have 36 rows, so 36 PCR cycles.  
+Each column is a PCR reaction. I was doing the experiment in a 96-well plate, so the data are spreat out in 96 columns.   
 
 Let's visualize the data first
 ```{r}
@@ -49,7 +54,7 @@ qPCR %>%
 ```
 
 
-The logit and logistic functions are defined as the following:
+The logit and logistic functions are defined as the following:   
 ```{r}
 logit <- function(p){log(
   p / (1-p)
@@ -63,14 +68,15 @@ logistic <- function(x){
 
 
 
-#Exercise
-Now you have learned how to run a logistic regression.
-It's time to practise. 
+# Exercise
+Now you have learned how to run a logistic regression.  
+It's time to practise.   
 
-This time we'll use the data from qPCR well A7.
+This time we'll use the data from qPCR well A7.  
 
 
-##Fit a logistic regression model for well A7
+## Fit a logistic regression model for well A7
+
 1) What is Ymax for A7? 
 ```{r}
 max(qPCR$A7)
@@ -89,15 +95,15 @@ model_A7 <- glm(A7_scaled ~ Cycle, data = qPCR_new, family = binomial(link = "lo
 ```
 ```{r}
 summary(model_A7)
-rsq(model_A7)
+rsq(model_A7, type = "sse")
 ```
 
-The equation will be:
-Y = 1/(1 + e^-(0.3098 * Cycle - 3.2721))
+The equation will be:   
+Y = 1/(1 + e^-(0.3098 * Cycle - 3.2721))   
 
-R^2 is 0.988. 
+R^2 is 0.988.    
 
-3) Visualize your model. Make your plot here:
+3) Visualize your model. Make your plot here:    
 ```{r}
 model_A7_fitted <- data.frame(
   Cycle = seq(1, 36, by = 0.1)
@@ -123,14 +129,14 @@ qPCR %>%
 ```{r}
 3.2721/0.3098
 ```
-It would be 10.56.
+It would be 10.56.  
 
 ```{r}
 max(qPCR$A7) /(1 + exp(-(0.3098 * 10.56 - 3.2721)))
 1/(1 + exp(-(0.3098 * 10.56198 - 3.2721)))
 ```
 
-At this point, the y value is ~1/2 of Ymax. 
+At this point, the y value is ~1/2 of Ymax.    
 
 
 

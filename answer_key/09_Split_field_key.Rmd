@@ -2,7 +2,13 @@
 title: "Split field and nested design key"
 author: "Chenxin Li"
 date: "6/21/2020"
-output: html_notebook
+output:
+  html_document:
+    toc: yes  
+  html_notebook:   
+    number_sections: yes    
+    toc: yes  
+    toc_float: yes  
 ---
 
 ```{r setup, include=FALSE}
@@ -10,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
  
-#load packages
+# load packages
 ```{r}
 library(lme4)
 library(lmerTest)  
@@ -29,27 +35,27 @@ library(viridis)
 
  
 
-#Exercise
-Now you have learned how to handle a split field experiment. 
-It's time for you to practice.
+# Exercise
+Now you have learned how to handle a split field experiment.   
+It's time for you to practice.  
 
-We'll use an oat data as an example. 
-In this experiment, we are looking at the effect of fertilizer across 4 variety of oats. 
-We have 4 blocks. 
-Within each block, it is divided into 4 mainplots. Each mainplot is given a fertilizer treatment (1 - 4).
-Within each mainplot, it is sub-divided into 4 subplots. Each subplot is given a variety of oat (1 - 4). 
+We'll use an oat data as an example.   
+In this experiment, we are looking at the effect of fertilizer across 4 variety of oats.    
+We have 4 blocks.   
+Within each block, it is divided into 4 mainplots. Each mainplot is given a fertilizer treatment (1 - 4).  
+Within each mainplot, it is sub-divided into 4 subplots. Each subplot is given a variety of oat (1 - 4).   
 At the end of the experiment, oat from each subplot is harvest and the yield is recorded. 
-(Data from UC Davis Plant Sciences course PLS205, Winter 2017)  
+(Data from UC Davis Plant Sciences course PLS205, Winter 2017)    
 
 ```{r}
 oats_data <- read_csv("data/Oats.csv")
 head(oats_data)
 ```
 
-WARNING: is there any numerically recorded variables you need to change to factors?
-(Hint: there are 4 of them.)
+WARNING: is there any numerically recorded variables you need to change to factors?  
+(Hint: there are 4 of them.)  
 
-WARNING: does each mainplot has its unique identifier?
+WARNING: does each mainplot has its unique identifier?  
 
 ```{r}
 oats_data <- oats_data %>% 
@@ -60,14 +66,14 @@ oats_data <- oats_data %>%
 ```
 
 
-##data visualization
+## data visualization
 
 Visualize the data before starting the analysis. Plot Yield on y axis.
 
-What to plot on the x axis? 
-what to color/fill with?
-Any faceting you want to use?
-Make the best plot you can here:
+What to plot on the x axis?   
+what to color/fill with?  
+Any faceting you want to use?  
+Make the best plot you can here:   
 ```{r}
 oats_data %>% 
   ggplot(aes(x = Fertilizer.F, y = Yield)) +
@@ -86,32 +92,35 @@ oats_data %>%
 ```
 
 
-##setting up the model
+## setting up the model 
 Fill in the design table.
 
-|source        | factor       | levels |   
-| Fertilizer   | treatment    |  4     |
-| Variety      | treatment    |  4     |
-| Block        | Block        |  4     |
-| Mainplot     | EU (for fert)|  16    |
-| subplot      | EU/OU        |  64    | supplot is the EU for variety
+|source        | factor       | levels |     
+|:------------:|:------------:|:------:|   
+| Fertilizer   | treatment    |  4     |   
+| Variety      | treatment    |  4     |   
+| Block        | Block        |  4     |  
+| Mainplot     | EU (for fert)|  16    |  
+| subplot      | EU/OU        |  64    |   
+
+subplot is the EU for variety   
 
 
-What are the treatments? Fertilizer and variety 
-Any blocking factors? Block
-What is the EU for each treatment? 
-EU for fertilizer is mainplot
-EU for variety is subplot 
+What are the treatments? Fertilizer and variety    
+Any blocking factors? Block  
+What is the EU for each treatment?   
+EU for fertilizer is mainplot   
+EU for variety is subplot   
 
-What is the OU? Subplot
+What is the OU? Subplot  
 
-What should the model be?
+What should the model be?  
 ```{r}
 model_oats <- lmer(Yield ~ Variety.F * Fertilizer.F + Block + (1|Mainplot.F), data = oats_data )
 ```
 
 
-##check assumptions of ANOVA
+## check assumptions of ANOVA
 Normality?
 ```{r}
 qqnorm(resid(model_oats))
@@ -124,27 +133,27 @@ plot(model_oats)
 ```
 Fine. 
 
-##run ANOVA and interpret the ANOVA table
+## run ANOVA and interpret the ANOVA table
 ```{r}
 anova(model_oats)
 ```
-Variety perform similarly across all treatments (P > 0.05)
-Fertilizer has some effect on yield. 
-Block has the strongest effect (F = 29). Although as the blocking factor this is not what are interested in. 
-The interaction between Variety and fertilizer is also significant (P = 0.03) 
+Variety perform similarly across all treatments (P > 0.05)  
+Fertilizer has some effect on yield.    
+Block has the strongest effect (F = 29). Although as the blocking factor this is not what are interested in.   
+The interaction between Variety and fertilizer is also significant (P = 0.03)   
 
-##run Tukey test and identify the best performing oat variety in each fertilizer treatment 
+## run Tukey test and identify the best performing oat variety in each fertilizer treatment 
 ```{r}
 estimate_oat_per_fert <- emmeans(model_oats, pairwise ~ Variety.F | Fertilizer.F)
 cld(estimate_oat_per_fert$emmeans, Letters = letters)
 ```
-Which variety performed the best? 
+Which variety performed the best?   
 
-There is no statistically significant differences in Fert 2,3 and 4. 
-In Fert 1, variety 2 has the best yield, although not significantly differnet from Var 3. 
+There is no statistically significant differences in Fert 2,3 and 4.   
+In Fert 1, variety 2 has the best yield, although not significantly differnet from Var 3.   
 
-Comment: Looking at the anova table, it should be obvious that the interesting factor here is Fert, not Var.
-So the more informative Tukey test is to test different across different Fert treatments. 
+Comment: Looking at the anova table, it should be obvious that the interesting factor here is Fert, not Var.  
+So the more informative Tukey test is to test different across different Fert treatments.    
 
 
 
