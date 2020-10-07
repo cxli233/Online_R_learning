@@ -3,79 +3,84 @@ title: "Formatting ggplots"
 author: "Chenxin Li"
 date: "6/20/2020"
 output:
-  html_notebook 
+  html_document:
+    toc: yes  
+  html_notebook:   
+    number_sections: yes    
+    toc: yes  
+    toc_float: yes  
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+Codes are highlighted in ```grey```. 
 
-#Introduction
+# Introduction
 
-The ggplot package in R is a powerful plotting tool. 
-It's easy to use, but you can make complex plots with rather simple syntax. 
+The ggplot package in R is a powerful plotting tool.   
+It's easy to use, but you can make complex plots with rather simple syntax.   
 
-"gg" stands for graphical grammar - 
-It means different layers of objects and elements are layered on top of the previous to generate the plot.
-You can find the ggplot cheatsheet here: https://rstudio.com/wp-content/uploads/2016/11/ggplot2-cheatsheet-2.1.pdf 
+"gg" stands for graphical grammar -  
+It means different layers of objects and elements are layered on top of the previous to generate the plot.  
+You can find the [ggplot cheatsheet](https://rstudio.com/wp-content/uploads/2016/11/ggplot2-cheatsheet-2.1.pdf)  
 
-This workbook will go over different features of ggplot
-1) geoms
-2) scales
-3) guides
-4) themes 
-5) facets
+This workbook will go over different features of ggplot  
 
-...and how to make the clearest, prettiest ggplot possible. 
+1) geoms  
+2) scales  
+3) guides  
+4) themes   
+5) facets    
 
-#load packages
+...and how to make the clearest, prettiest ggplot possible.    
+
+# load packages
 You might need to install some of these packages 
 ```{r}
 library(ggplot2) 
 library(tidyr)
 library(dplyr)
-library(readr)
-library(readxl)
 ```
 
-
-#data 
-We'll use the R built-in dataset ToothGrowth. 
-This dataset is about different doses of vitamin C on tooth growth of guinea pigs
+We'll use the R built-in dataset ToothGrowth.   
+This dataset is about different doses of vitamin C on tooth growth of guinea pigs   
 Ref: Crampton, E. W. (1947). The Journal of Nutrition, 33(5), 491–504. doi: 10.1093/jn/33.5.491.
+
 ```{r}
 head(ToothGrowth)
 str(ToothGrowth)
 ```
-It has 60 rows and 3 columns. 
-Two types of supp: OJ and VC
-Looks like len is tooth length and the dependent variable. 
+It has 60 rows and 3 columns.   
+Two types of supp: OJ and VC   
+Looks like len is tooth length and the dependent variable.    
+Let's make the most basic plot first   
 
-#data visualization 
-Let's make the most basic plot first
-
-##coordinate system 
+# coordinate system 
 Dose on X, length on Y, color as supp 
 ```{r}
 ToothGrowth %>% 
   ggplot(aes(x = dose, y = len)) +
   geom_point(aes(color = supp)) 
 ```
-I prefer to type out the data frame first, then pipe into ggplot(). It's more readable this way.  
-Thus ToothGrowth %>% ggplot(...). 
+I prefer to type out the data frame first, then pipe into ```ggplot()```. It's more readable this way.    
+Thus ```ToothGrowth %>% ggplot(...). ```
 
-The row ggplot(aes(x = ..., y = ...)) specifies what are the x and y axis. 
-Then you add a new layer (in this case points) by using + 
-and in a new line you write geom_poits(). "Geom" stands for geommetric object. 
-Inside geom_point() you want to color by supp, so you write aes(color = supp). 
+The line ```ggplot(aes(x = ..., y = ...))``` specifies what are the x and y axis.  
+In this case does on x axis, len on y axis.  
+Then you add a new layer (in this case points) by using ```+```     
+and in a new line you write ```geom_poits()```. "Geom" stands for geommetric object.   
+In this case ```geom_points()``` produces points.   
+Inside ```geom_point()``` you want to color by supp, so you write ```aes(color = supp)```.    
 
 
-This is not bad... Now let's use a custom palette called "wisteria". It's just a set of color names.  
+This is not bad... Now let's use a custom palette called "wisteria". It's just a set of color names.    
 
-##adjust geom color/fill
+# adjust geom color/fill
 ```{r}
 wisteria <- c("grey65", "burlywood3", "khaki2", "plum1", "lightcyan2", "cornflowerblue", "slateblue3")
 ```
+This is just a list of color names in R. 
 
 ```{r}
 ToothGrowth %>% 
@@ -83,9 +88,13 @@ ToothGrowth %>%
   geom_point(aes(color = supp)) +
   scale_color_manual(values = wisteria[c(1, 7)]) #calling the 1st and 7th color 
 ```
+You can customize color using ```scale_color_manual()```,   
+in side which, you specfies the names of the colors,   
+in this case the color names are pre-specified by a vector called ```wisteria```.   
 
-##change axis and legend labels - labs() 
-Now I want to change the axis and legend titles. How do I do that?
+# change axis and legend labels - labs() 
+Now I want to change the axis and legend titles. How do I do that?  
+
 ```{r}
 ToothGrowth %>% 
   ggplot(aes(x = dose, y = len)) +
@@ -95,9 +104,12 @@ ToothGrowth %>%
        y = "teeth length",
        color = "supplement")
 ```
+The ```labs()``` function allows you to change axis and legend labels.   
+Should be self-explanatory.   
 
-You can see the dots are overlapping each other. How do I make them spread out a bit horizontally?
-##adjust geom positions
+You can see the dots are overlapping each other. How do I make them spread out a bit horizontally?    
+# adjust geom positions
+
 ```{r}
 ToothGrowth %>% 
   ggplot(aes(x = dose, y = len)) +
@@ -111,7 +123,12 @@ ToothGrowth %>%
        color = "supplement")
 ```
 
-This is great, but I can make it even better by adding border to each dots. How to do that?
+There are a few options in geom_points. 
+The ```position = position_jitter(0.1)``` argument adds random horizontal spread of 0.1 to each dot.  
+The ```alpha = 0.8``` makes your dots 20% transparent. (```alpha = 1``` is 0% transparent and default.)  
+The ```size``` option allows you to make dots larger or smaller.  
+
+This is great, but I can make it even better by adding border to each dots. How to do that?  
 ```{r}
 ToothGrowth %>% 
   ggplot(aes(x = dose, y = len)) +
@@ -126,13 +143,62 @@ ToothGrowth %>%
        y = "teeth length",
        fill = "supplement") #change to fill = here
 ```
-Now we're absolutely clear where each dot is. 
+## color vs fill 
+Well there are more options in ```geom_point```.
+One of them is shape. ```geom_point``` allows different shapes, such as square, cross and etc.  
+My favorite is open circle. To use the open circles, you call ```shape = 21```.   
+The advantage of open circle is that it has both ```color``` and ```fill``` properties.   
+To help you understand the difference between color and fill, let's compare the following two plots.   
 
-But there is a problem...
-Note that when you use jitter, the horizontal spread is completely random.
-This means everytime you run the code, the position of the dots are different. 
-How do I fix that? 
-You can add a "seed" argument in the position_jitter function, that will make it reproducible
+```{r}
+data.frame(
+  x = c("group1", "group2"),
+  y = c(10, 20)
+) %>% 
+  ggplot(aes(x = x, y = y)) +
+  geom_bar(stat = "identity", aes(fill = x)) +
+  ggtitle("fill by x")
+```
+
+```{r}
+data.frame(
+  x = c("group1", "group2"),
+  y = c(10, 20)
+) %>% 
+  ggplot(aes(x = x, y = y)) +
+  geom_bar(stat = "identity", aes(color = x)) +
+  ggtitle("color by x")
+```
+I hope you can see the difference. 
+If we use ```fill```, the entire interior is colored, or filled. 
+If we use ```color```, only the outline is colored. 
+
+Coming back to using open circles in ```geom_point()```,  
+Open circles takes both ```fill``` and ```color```.    
+```{r}
+ToothGrowth %>% 
+  ggplot(aes(x = dose, y = len)) +
+  geom_point(aes(fill = supp), #note that change to fill = supp
+             position = position_jitter(0.1),   
+             alpha = 0.8,             
+             size = 3,
+             shape = 21, #shape = 21 gives you open circle
+             color = "black") +    #black border around each dot
+  scale_fill_manual(values = wisteria[c(1, 7)]) + #change to scale_fill here 
+  labs(x = "dose",              
+       y = "teeth length",
+       fill = "supplement") #change to fill = here
+```
+In this case, I use ```color = "black"``` to make black outlines for each dot.   
+Then I used ```aes(fill = supp)``` to fill the interior of dots by the supp.  
+Now, to specify colors, I have to use ```scale_fill_manual()```,   
+instead of ```scale_color_manual()```,  because the variable ```supp``` is now reflected by fill, not color.  
+
+But there is still a problem...  
+Note that when you use jitter, the horizontal spread is completely random.      
+This means everytime you run the code, the position of the dots are different.     
+How do I fix that?    
+You can add a ```seed``` argument within ```position_jitter()```, that will make it reproducible   
 
 ```{r}
 ToothGrowth %>% 
@@ -150,14 +216,19 @@ ToothGrowth %>%
        y = "teeth length",
        fill = "supplement")
 ```
+In this case, I used ```seed = 666```.   
+But you can use any seed number. 
+As long as it's the same number, the plot will look the same everytime you run the code.   
 
-##stat_summary - very powerful visualization tool 
 
-Let's say I want a curve for each supplement, what should I do? 
-Your first reaction is geom_line, no? 
-Unfortunately, that's not the right answer. 
-geom_line will try to connect each dot, but what we want is try to connect the MEANS of each dose for each supp. 
-We'll use stat_summary instead 
+# stat_summary - very powerful visualization tool   
+
+Let's say I want a curve for each supplement, what should I do?    
+Your first reaction is ```geom_line```, no?      
+Unfortunately, that's not the right answer.    
+```geom_line``` will try to connect each dot,  
+but what we want is try to connect the *means* of each dose for each supp.   
+We'll use ```stat_summary()``` instead   
 
 ```{r}
 ToothGrowth %>% 
@@ -177,9 +248,15 @@ ToothGrowth %>%
        y = "teeth length",
        fill = "supplement")
 ```
-well, there's a problem. The lines are not the same color as the dots. 
-That's because the line is controlled by scale_color, the dots are controlled by scale_fill
-It's easy to fix 
+In ```stat_summary()```, I put ```geom = "line"```, which asked it to draw lines.  
+Then I put ```fun.y = mean```, which asked it summarize y values using the ```mean()``` function.  
+Then I put ```aes(group = supp, color = supp)```, which asked for one line per supp,   
+and color those lines by supp.   
+
+well, there's a problem. The lines are not the same color as the dots.    
+That's because we specified the interior colors of dots using ```scale_fill_manual()```,    
+but we never specified the color of the lines.  
+It's easy to fix. We will use ```scale_color_manual()``` to specify colors for the lines too.   
 
 ```{r}
 ToothGrowth %>% 
@@ -195,17 +272,19 @@ ToothGrowth %>%
              shape = 21, 
              color = "black") +    
   scale_fill_manual(values = wisteria[c(1, 7)]) +  
-  scale_color_manual(values = wisteria[c(1, 7)]) + #add scale_color_manual here
+  scale_color_manual(values = wisteria[c(1, 7)]) + #add scale_color_manual here  
   labs(x = "dose",              
        y = "teeth length",
        fill = "supplement",
        color = "supplement") #change the color legend title here 
 ```
-Better! Note that since the title and scales of fill and color are the same, ggplot merged them in the legend. 
+Better!   
+Note that since the title and scales of fill and color are the same, ggplot merged them in the legend.    
 
-Now I want to add errorbars to the line, how do I do that?
-We'll use stat_summary again, but this time instead of geom = "line", we'll do geom = "errorbar"
-Beside geom = "errorbar", another option is geom = "linerange"
+Now I want to add errorbars to the line, how do I do that?   
+We'll use ```stat_summary``` again,   
+but this time instead of ```geom = "line"```, we'll do ```geom = "errorbar"```   
+Besides ```geom = "errorbar"```, another option is ```geom = "linerange"```   
 linerange is errorbar without the horizontal bars
 
 ```{r}
@@ -232,8 +311,9 @@ ToothGrowth %>%
        fill = "supplement",
        color = "supplement")  
 ```
-Here is another option to show the errorbar 
-stat_summary(geom = "ribbon")
+Now there are error bars.    
+Here is another option to show the errorbar using ```stat_summary(geom = "ribbon")```    
+I like ribbon better. You can see for yourself. 
 
 ```{r}
 ToothGrowth %>% 
@@ -260,16 +340,17 @@ ToothGrowth %>%
        fill = "supplement",
        color = "supplement")
 ```
-I like the ribbon better. 
-But feel free to use errorbar or linerange if you prefer those 
+I like the ribbon better.    
+It looks very nice for high transparency with ```alpha = 0.5```.     
+But feel free to use errorbar or linerange if you prefer those    
 
-##adjust legends and axis
+# adjust legends and axis
 
-Note that in the experiment, there's never a dose = 1.5.
-We can turn off the x axis tick mark of 1.5 by using scale_x
-(You can adjust y axis using scale_y_... as well, if you ever need to)
+Note that in the experiment, there's never a dose = 1.5.   
+We can turn off the x axis tick mark of 1.5 by using ```scale_x```        
+(You can adjust y axis using ```scale_y``` as well, if you ever need to)   
 
-BTW, if you ever need to log10 transform axis, you can do scale_x_log10 or scale_y_log10 
+BTW, if you ever need to log10 transform axis, you can do ```scale_x_log10()``` or ```scale_y_log10()```    
 ```{r}
 ToothGrowth %>% 
   ggplot(aes(x = dose, y = len)) +
@@ -297,10 +378,12 @@ ToothGrowth %>%
        fill = "supplement",
        color = "supplement")
 ```
-Now the x = 1.5 mark is turned off. 
+Because x axis value is numeric and continuous, you will use ```scale_x_continuous()```  
+And inside, you set the break makers, in this case 0.5, 1 and 2.   
+Now the x = 1.5 mark is turned off.     
 
-I realized the color and fill scales are redundant, so we can turn off one of them.
-To do so, we'll use guides. 
+I realized the color and fill scales are redundant, so we can turn off one of them.   
+To do so, we'll use guides.     
 
 ```{r}
 ToothGrowth %>% 
@@ -329,11 +412,15 @@ ToothGrowth %>%
        color = "supplement") +
   guides(color = F) #turn off color legend using color = F 
 ```
-##adjust themes
-The default theme is nice, but it's not the best
-You can use the theme() function to build your own theme
+The ```guides()``` function can do a lot of stuff. 
+Here I turned color legend off by putting ```color = F``` in ```guides()```.     
 
-Let's remove all the theme element first using theme_minimal()
+# adjust themes
+The default theme is nice, but it's not the best   
+You can use the ```theme()``` function to build your own theme  
+
+Let's remove all the theme element first using ```theme_minimal()```  
+
 ```{r}
 ToothGrowth %>% 
   ggplot(aes(x = dose, y = len)) +
@@ -362,8 +449,9 @@ ToothGrowth %>%
   guides(color = F) +
   theme_minimal() 
 ```
-Theme minimal is the minimalistic theme. It turns off most theme elements. 
-But you can add elements that you want back.
+
+Theme minimal is the minimalistic theme. It turns off most theme elements.   
+But you can add elements that you want back.    
 
 ```{r}
 ToothGrowth %>% 
@@ -396,11 +484,16 @@ ToothGrowth %>%
   theme(text = element_text(size = 12, color = "black", face = "bold")) + #make text clearer and darker
   theme(axis.text = element_text(size = 12, color = "black", face = "bold")) 
 ```
+The ```theme()``` function takes a lot of options, such as ```axis.line```, ```text``` and all that.  
+You can look up the options [here](https://ggplot2.tidyverse.org/reference/theme.html)   
+The rule of thumb is if you want to adjust lines, such as axis line, then you use ```element_line()```   
+Then you specify color and size in ```element_line()```   
+If you want to adjust text, then you use ```element_text()```,   
+again in which you specify color and size in ```element_text()```.   
+The white backgroung and black lines really put the data forward and emphasize the data    
 
-The white backgroung and black lines really put the data forward and emphasize the data
-
-Now notice the legend is on the right and it is taking up space?
-You can move it into the plot using theme(legend.position = )
+Now notice the legend is on the right and it is taking up space?     
+You can move it into the plot using ```theme(legend.position = )```
  
 ```{r}
 ToothGrowth %>% 
@@ -434,8 +527,10 @@ ToothGrowth %>%
   theme(text = element_text(size = 12, color = "black", face = "bold")) +
   theme(axis.text = element_text(size = 12, color = "black", face = "bold")) 
 ```
+In ```theme()```, you can put ```legend.position = "bottom"```.   
+You can also put ```"top"```, ```"right"``` or ```"left"```.     
 
-The more fancy thing is to move legend inside the graph area. How to do that?
+The more fancy thing is to move legend inside the graph area. How to do that?    
 ```{r}
 ToothGrowth %>% 
   ggplot(aes(x = dose, y = len)) +
@@ -470,11 +565,16 @@ ToothGrowth %>%
   theme(text = element_text(size = 12, color = "black", face = "bold")) +
   theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
 ```
-Now the legend is in the graph area.
-This is nice because now the legend doesn't take up extra space
 
-One last adjustment you can do is change the number of rows and column of the legend.
-Now we have two rows, one column. What if I want one row and two columns? 
+In ```legend.position = c(x, y)```, you manually adjust where the legend will show up.   
+For example ```c(1, 1)``` means upper right corner of the graph area,  
+and ```c(1, 0)``` means the lower right corner of the graph area  
+
+Now the legend is in the graph area.    
+This is nice because now the legend doesn't take up extra space    
+
+One last adjustment you can do is change the number of rows and column of the legend.   
+Now we have two rows, one column. What if I want one row and two columns?    
 
 We'll use guides again. 
 ```{r}
@@ -509,20 +609,19 @@ ToothGrowth %>%
   theme(axis.line = element_line(size = 1.2)) + 
   theme(text = element_text(size = 12, color = "black", face = "bold")) +
   theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
-
-
-
 ```
-This line guides(fill = guide_legend(nrow = N)) is very useful we you have limited space and a lot of legend items
-It also works as guides(color = guide_legend(nrow = N)) if you need to arrange color legends. 
+This line ```guides(fill = guide_legend(nrow = N))``` is very useful we you have limited space
+and a lot of legend items    
+It also works as ```guides(color = guide_legend(nrow = N))``` if you need to arrange color legends. 
+Again, think about the difference between fill and color. 
 
-##faceting
-faceting is very important when you have a factorial design. 
-In this experiment, we have supp as a factor, and dose as another factor. 
-So this is a factorial design
-faceting allows you and readers to focus on the true comparison of interest 
+# faceting
+faceting is very important when you have a factorial design.   
+In this experiment, we have supp as a factor, and dose as another factor.    
+So this is a factorial design   
+faceting allows you and readers to focus on the true comparison of interest    
 
-1) Let's say we are interested in comparing the effect of each supp across different doses...
+Let's say we are interested in comparing the effect of each supp across different doses...     
 ```{r}
 ToothGrowth %>% 
   ggplot(aes(x = dose, y = len)) +
@@ -557,15 +656,13 @@ ToothGrowth %>%
   theme(text = element_text(size = 12, color = "black", face = "bold")) +
   theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
 ```
-Now it makes two plots. 
-The facet syntax works like this: 
-facet_grid(row ~ column) 
+Now it makes two plots.    
+The facet syntax works like this:   
+```facet_grid(row ~ column)``` 
 We are using supp as columns, and only 1 row, so 
-facet_grid(. ~ supp). The "." before the "~" is just a space holder. 
+```facet_grid(. ~ supp)```. The ```.``` before the ```~``` is just a space holder.     
 
-
-
-You can increase the panel spacing too
+You can increase the panel spacing too      
 ```{r}
 ToothGrowth %>% 
   ggplot(aes(x = dose, y = len)) +
@@ -595,19 +692,18 @@ ToothGrowth %>%
   guides(color = F) +
   guides(fill = guide_legend(nrow = 1, ncol = 2)) +  
   theme_minimal() +
-  theme(legend.position = "none") +  #this time the legend is redundant with the panel label, so I turn it off. 
+  theme(legend.position = "none") +  #this time the legend is redundant w/ the panel label, so I turn it off. 
   theme(axis.line = element_line(size = 1.2)) + 
   theme(text = element_text(size = 12, color = "black", face = "bold")) +
   theme(axis.text = element_text(size = 12, color = "black", face = "bold")) +
   theme(panel.spacing = unit(1.2, "lines")) #make 1.2 lines of spacing between the subplots (panels)
-
-
 ```
+Note that this time the legend is redundant with the panel label,   
+so I turn it off using ```legend.position = "none"``` in ```theme()```    
+Great!    
 
-Great!
-
-2) But now say I am actually interested in comparing between supp at each dose, what do I do?
-We'll need facet_grid(. ~ dose), no?
+But now say I am actually interested in comparing between supp at each dose, what do I do?   
+We'll need ```facet_grid(. ~ dose)```, no?       
 
 ```{r}
 ToothGrowth %>% 
@@ -644,10 +740,11 @@ ToothGrowth %>%
   theme(axis.text = element_text(size = 12, color = "black", face = "bold")) +
   theme(panel.spacing = unit(1.2, "lines"))  
 ```
-Now there is a problem. The lines and ribbons are gone. 
-That's because in each panel, there is only one dose. There is nothing to connect.
-And the x axis is redundant with the panel. 
-So what we really need is to put supp on x axis instead
+
+Now there is a problem. The lines and ribbons are gone.    
+That's because in each panel, there is only one dose. There is nothing to connect.   
+And the x axis is redundant with the panel.     
+So what we really need is to put supp on x axis instead     
 
 ```{r}
 ToothGrowth %>% 
@@ -675,8 +772,8 @@ ToothGrowth %>%
   theme(axis.text = element_text(size = 12, color = "black", face = "bold")) +
   theme(panel.spacing = unit(1.2, "lines"))  
 ```
-There is no numeric trend on x axis, so I removed the ribbon and line. 
-But I can still add the errorbars back.
+There is no numeric trend on x axis, so I removed the ribbon and line.   
+But I can still add the errorbars back.  
 
 ```{r}
 ToothGrowth %>% 
@@ -707,8 +804,9 @@ ToothGrowth %>%
   theme(axis.text = element_text(size = 12, color = "black", face = "bold")) +
   theme(panel.spacing = unit(1.2, "lines"))  
 ```
-Pretty good. 
-There is one problem. "oJ" and "VC" text appear multiple times. We can turn them off and only show the legend.
+Pretty good.   
+There is one problem. "oJ" and "VC" text appear multiple times.    
+We can turn them off and only show the legend.   
 
 ```{r}
 ToothGrowth %>% 
@@ -741,8 +839,8 @@ ToothGrowth %>%
   theme(panel.spacing = unit(1.2, "lines"))
 ```
 
-Now just a couple final touches. Note that the text "supplement" appears twice, and dose appears none. 
-We can put the panel labels to the bottom, and swith the x axis label to dose instead.
+Now just a couple final touches. Note that the text "supplement" appears twice, and dose appears none.    
+We can put the panel labels to the bottom, and swith the x axis label to dose instead.   
 
 ```{r}
 ToothGrowth %>% 
@@ -774,30 +872,28 @@ ToothGrowth %>%
   theme(axis.text = element_text(size = 12, color = "black", face = "bold")) +
   theme(panel.spacing = unit(1.2, "lines")) +
   theme(strip.placement = "outside") # put the text 0.5, 1, and 2  outside the axis line
-
-
 ```
-Now it really looks like dose is x axis, but in fact it is the faceting factor. 
+Now it really looks like dose is x axis, but in fact it is the faceting factor.    
 
-Congratulation! You have produced a publication quality plot! 
+Congratulation! You have produced a publication quality plot!    
 
-I think this is the best plot we can make for faceting by dose. 
-The best practice of plotting is always idenity the comparison of interest,
-remove redundant and unnecessary elements,  
-try to make it as pretty as you can, and
-be clear on what you want to show. 
+I think this is the best plot we can make for faceting by dose.    
+The best practice of plotting is always idenity the comparison of interest,   
+remove redundant and unnecessary elements,     
+try to make it as pretty as you can, and      
+be clear on what you want to show.      
 
-#Exercise - Now time for you to try
+# Exercise - Now time for you to try
 
-Let's use the R built-in dataset CO2 as example
-Ref: Potvin, C., Lechowicz, M. J. and Tardif, S. (1990), Ecology, 71, 1389–1400.
+Let's use the R built-in dataset CO2 as example   
+Ref: Potvin, C., Lechowicz, M. J. and Tardif, S. (1990), Ecology, 71, 1389–1400.   
 ```{r}
 head(CO2)
 str(CO2)
 ```
 
-Task: produce a plot that includes the info for Type and Treatment, with uptake on Y axis. 
-Let's say we are interested in the effect of "Treament" in each Type. 
+Task: produce a plot that includes the info for Type and Treatment, with uptake on Y axis.   
+Let's say we are interested in the effect of "Treament" in each Type.    
 
 
 
@@ -807,25 +903,25 @@ Hint:
 2) What variable do you color or fill with?
 3) What faceting layout do you want to use? 
 
-Use the format: 
+Use the format:   
 
-CO2 %>% 
-  ggplot(aes(x = ???, y = uptake)) +
-  facet_grid(??? ~ ???) + 
-  geom_ponit(aes()) +
-  stat_summary(geom = errorbar) +
-  scale_color_manual() +
-  scale_fill_manual() +
-  scale_..._.... +
-  labs() +
-  guides() +
-  theme_minimal()+
-  theme(legend.position = ...) +
-  theme(axis.line = element_line(size = 1.2)) + 
-  theme(text = element_text(size = 12, color = "black", face = "bold")) +
-  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) 
+CO2 %>%    
+  ggplot(aes(x = ???, y = uptake)) +   
+  facet_grid(??? ~ ???) +    
+  geom_ponit(aes()) +   
+  stat_summary(geom = errorbar) +   
+  scale_color_manual() +   
+  scale_fill_manual() +   
+  scale_..._.... +   
+  labs() +   
+  guides() +   
+  theme_minimal()+   
+  theme(legend.position = ...) +   
+  theme(axis.line = element_line(size = 1.2)) +     
+  theme(text = element_text(size = 12, color = "black", face = "bold")) +   
+  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))      
 
-Now try to make the best plot you can!
+Now try to make the best plot you can!      
 ```{r}
 
 ```
