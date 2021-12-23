@@ -1,9 +1,10 @@
 # Online_R_learning
-Online R learning project for advanced undergrads during the COVID-19 pandemic  
-* author: Chenxin Li
-* Grad student
-* Department of Plant Biology, UC Davis
-* lukli@ucdavis.edu 
+Online R learning project for advanced undergrads during the COVID-19 pandemic 
+
+* Author: Chenxin Li
+* Postdoc researcher 
+* Center for Applied Genetic Technologies, UGA  
+* chenxin.li@uga.edu  
 
 # Content
 This repository has 14 activities: 
@@ -33,12 +34,9 @@ Each unit builds upon the previous. After each unit, there is also an exercise.
 # Getting started
 1) Clone the repository to your machine by downloading the zip file
 2) Unzip (and move the “Online_R_learning-master” folder to whichever folder you like on your machine).
-3) Open RStudio and create a new project: File - New Project. Select *Existing Directory*.
-4) Set the folder directly containing "R_codes", "data" and "answer_keys" subfolders as the working directory. 
-_Important! If you don't set the right folder, R will have trouble loading the data files._  
-5) Open .Rmd files under the R_codes folder: File - Open File.
-6) Under the Knit or Preview drop down menu, select *Project Directory*. 
-_Important! This way R can load the data files._   
+3) Open RStudio  
+4) Open .Rmd files under the R_codes folder 
+5) Enjoy! 
 
  
 
