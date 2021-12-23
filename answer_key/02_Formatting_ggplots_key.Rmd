@@ -15,10 +15,10 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Load packages
 
+You might need to install some of these packages
 
-# load packages
-You might need to install some of these packages 
 ```{r}
 library(ggplot2) 
 library(tidyr)
@@ -27,28 +27,27 @@ library(readr)
 library(readxl)
 ```
 
+# Exercise - Now time for you to try
 
- 
-# Exercise - Now time for you to try  
+Let's use the R built-in dataset CO2 as example\
+Ref: Potvin, C., Lechowicz, M. J. and Tardif, S. (1990), Ecology, 71, 1389--1400.
 
-Let's use the R built-in dataset CO2 as example  
-Ref: Potvin, C., Lechowicz, M. J. and Tardif, S. (1990), Ecology, 71, 1389–1400.   
 ```{r}
 head(CO2)
 str(CO2)
 ```
 
-Task: produce a plot that includes the info for Type and Treatment, with uptake on Y axis.   
-Let's say we are interested in the effect of "Treament" in each Type.    
+Task: produce a plot that includes the info for Type and Treatment, with uptake on Y axis.\
+Let's say we are interested in the effect of "Treament" in each Type.
 
-Hint:   
+Hint:
 
-1) What should be on the x axis?  
-2) What variable do you color or fill with?  
-3) What faceting layout do you want to use?    
+1)  What should be on the x axis?\
+2)  What variable do you color or fill with?\
+3)  What faceting layout do you want to use?
 
+Now try to make the best plot you can!
 
-Now try to make the best plot you can!   
 ```{r}
 CO2 %>% 
   ggplot(aes(x = Treatment, y = uptake)) +
@@ -68,7 +67,3 @@ CO2 %>%
   theme(axis.text = element_text(size = 12, color = "black", face = "bold")) +
   theme(strip.placement = "outside")
 ```
-
-
-
- 

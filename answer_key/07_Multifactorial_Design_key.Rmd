@@ -15,8 +15,8 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
- 
-# load pacakges
+# Load packages
+
 ```{r}
 library(emmeans)  
 library(multcomp)
@@ -31,34 +31,36 @@ library(viridis)
 ```
 
 # Exercise
-Now you have learned how to analyze multifactorial experiment.   
-You will practise it.   
 
-We will use an actual experiment "potato yield" as example.   
-In this experiment, we are looking at the yield of two varieties of potato across differet nitrogen input.   
+Now you have learned how to analyze multifactorial experiment.\
+You will practice it.
 
-Potato from one of the two varieties were randomly assigned one of the 5 nitrogen treatments.   
-At the end of the experiment, potatos were harvested and weighed.   
-(Data from UC Davis Plant Sciences course PLS205, Winter 2017)   
+We will use an actual experiment "potato yield" as example.\
+In this experiment, we are looking at the yield of two varieties of potato across different nitrogen input.
+
+Potato from one of the two varieties were randomly assigned one of the 5 nitrogen treatments.\
+At the end of the experiment, potatos were harvested and weighed.\
+(Data from UC Davis Plant Sciences course PLS205, Winter 2017)
 
 ```{r}
-Potato_Yield <- read.csv("data/Potato_Yield.csv")
+Potato_Yield <- read.csv("../data/Potato_Yield.csv")
 head(Potato_Yield)
 str(Potato_Yield)
 ```
 
+## Visualize the data
 
-## visualize the data
-make the best plot you can to visualize the data.  
+make the best plot you can to visualize the data.
 
-What to put on x axis?  
-What to color/fill with?  
-Any faceting that you want to use?   
+What to put on x axis?\
+What to color/fill with?\
+Any faceting that you want to use?
 
-WARNING: are there any numerically recorded variables you want to change into factors?  
-(Hint: there is 1 variable that you need to change into factor.)    
+WARNING: are there any numerically recorded variables you want to change into factors?\
+(Hint: there is 1 variable that you need to change into factor.)
 
 Make your plot here:
+
 ```{r}
 Potato_Yield %>% 
   ggplot(aes(x = Nitrogen, y = Yield)) +
@@ -70,35 +72,33 @@ Potato_Yield %>%
   theme(
     axis.line = element_line(size = 1.2),
     text = element_text(size = 14, color = "black", face = "bold"),
-    axis.text = element_text(color = "black"),
-    legend.position = "none"
+    axis.text = element_text(color = "black")
   )
 ```
 
+## Setting up the model
 
-## setting up the model
+Fill out the table:
 
-Fill out the table: 
+What are the sources of variation?\
+What factors are they? (treatment? block? observational units? experimental units?)\
+How many levels in each?
 
-What are the sources of variation?  
-What factors are they? (treatment? block? observational units? experimental units?)  
-How many levels in each?  
+|  source  |  factor   | levels |
+|:--------:|:---------:|:------:|
+| Variety  | Treatment |   2    |
+| Nitrogen | Treatment |   5    |
+| potatos  |  EU, OU   |  100   |
 
+(The potato yield table has 100 rows.\
+Because it is a tidy table,\
+I know there is total of 100 potatos.)
 
-| source  | factor       | levels |   
-|:-------:|:------------:|:------:|    
-| Variety | Treatment    | 2      |   
-| Nitrogen| Treatment    | 5      |   
-| potatos | EU, OU       | 100    |     
+What main effects should you include in the model?\
+Which interactions should you include in the model?
 
-(The potato yield table has 100 rows.  
-Because it is a tidy table,   
-I know there is total of 100 potatos.)  
- 
-What main effects should you include in the model?   
-Which interactions should you include in the model?   
+Set up the linear model.
 
-Set up the linear model. 
 ```{r}
 Potato_Yield <- Potato_Yield %>% 
   mutate(Nitrogen.F = as.factor(Nitrogen)) #don't forget to change numeric variable to facotr for ANOVA
@@ -106,45 +106,42 @@ Potato_Yield <- Potato_Yield %>%
 model_potato <- lm(Yield ~ Variety * Nitrogen.F, data = Potato_Yield)
 ```
 
-## check assumptions of ANOVA 
+## Check assumptions of ANOVA
+
 ```{r}
 plot(model_potato, which = c(1, 2, 3))
 ```
 
-Normality?  
-Pretty good.  
-Equal variance?   
-Pretty good.   
+Normality?\
+Pretty good.\
+Equal variance?\
+Pretty good.
 
-## run ANOVA
+## Run ANOVA
+
 How would you interpret the ANOVA table?
+
 ```{r}
 anova(model_potato)
 ```
-Variety explains the most variation (F = 140),  
-followed by Nitrogen (as a factor, F= 21),  
-followed by their interaction (F = 7)   
 
+Variety explains the most variation (F = 140),\
+followed by Nitrogen (as a factor, F= 21),\
+followed by their interaction (F = 7)
 
 ## Tukey test
-Say we are interested in knowing which variety performs better each nitrogen input.   
-How should you set up the Tukey test?    
+
+Say we are interested in knowing which variety performs better each nitrogen input.\
+How should you set up the Tukey test?
+
 ```{r}
 estimate_potato_per_nitrogen <- emmeans(model_potato, pairwise ~ Variety | Nitrogen.F)
 ```
 
- 
-Pull out the cld output and interpret the results.   
+Pull out the cld output and interpret the results.
+
 ```{r}
 cld(estimate_potato_per_nitrogen$emmeans, Letters = letters)
 ```
 
- Across all 5 nitrogen treatment, Russet Burbank has higher yield than Alpine Russet.    
- 
-
-
-
-
-
-
- 
+Across all 5 nitrogen treatment, Russet Burbank has higher yield than Alpine Russet.

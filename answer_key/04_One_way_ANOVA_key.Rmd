@@ -14,9 +14,9 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
- 
 
-# load packages
+# Load packages
+
 ```{r}
 library(emmeans) #three new packages you might need to install them 
 library(multcomp)
@@ -31,20 +31,19 @@ library(RColorBrewer)
 library(viridis)
 ```
 
-# data
+# Data
 
-https://github.com/allisonhorst/palmerpenguins   
-Ref: Gorman KB, Williams TD, Fraser WR (2014) PLoS ONE 9(3): e90081.   https://doi.org/10.1371/journal.pone.0090081   
+<https://github.com/allisonhorst/palmerpenguins>\
+Ref: Gorman KB, Williams TD, Fraser WR (2014) PLoS ONE 9(3): e90081. <https://doi.org/10.1371/journal.pone.0090081>
+
 ```{r}
-remotes::install_github("allisonhorst/palmerpenguins") #download the data from Github.
+#remotes::install_github("allisonhorst/palmerpenguins") #download the data from Github.
 #you might need to install the "remotes" package
 library(palmerpenguins)
 ```
 
- 
+# Data visualization
 
-
-# data visualization
 ```{r}
 wisteria <- c("grey65", "burlywood3", "khaki2", "plum1", "lightcyan2", "cornflowerblue", "slateblue3")
 
@@ -65,13 +64,12 @@ wisteria <- c("grey65", "burlywood3", "khaki2", "plum1", "lightcyan2", "cornflow
         legend.position = "none")
 ```
 
- 
-  
-# Exercise 
-Now try it out yourself!
-Compare the bill depth across the three species and find out which one has the widest bill. 
+# Exercise
 
-## visualize the data
+Now try it out yourself! Compare the bill depth across the three species and find out which one has the widest bill.
+
+## Visualize the data
+
 ```{r}
 head(penguins)
 ```
@@ -94,39 +92,35 @@ penguins %>%
         legend.position = "none")
 ```
 
+## Set up the linear model and check assumptions
 
-## set up the linear model and check assumptions
 ```{r}
 model_depth <- lm(bill_depth_mm ~ species, data = penguins)
 plot(model_depth)
 ```
-Prety okay 
 
-## run ANOVA and interpret the ANOVA table
+Prety okay
+
+## Run ANOVA and interpret the ANOVA table
+
 ```{r}
 anova(model_depth)
 ```
-F = 359, and P value is very small. Reject the null hypothesis of depth being equal across three species. 
 
+F = 359, and P value is very small. Reject the null hypothesis of depth being equal across three species.
 
-## run Tukey tests and interpret the contrast
+## Run Tukey tests and interpret the contrast
+
 ```{r}
 estimate_depth <- emmeans(model_depth, pairwise ~ species)
 estimate_depth$contrast
 ```
 
-## report the compact letter display and interpret the cld output
+## Report the compact letter display and interpret the cld output
+
 ```{r}
 cld(estimate_depth$emmeans, Letters = letters)
 ```
-Gentoo has the least deep bill.   
-The other two species are not statistically different from each other.    
 
-
- 
-
-
-
-
-
-
+Gentoo has the least deep bill.\
+The other two species are not statistically different from each other.
