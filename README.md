@@ -4,10 +4,14 @@ Online R learning for applied statistics
 Release v3: 
 [![DOI](https://zenodo.org/badge/252339170.svg)](https://zenodo.org/badge/latestdoi/252339170)
 
-* Author: Chenxin Li
-* Postdoc researcher 
-* Center for Applied Genetic Technologies, UGA  
-* chenxin.li@uga.edu  
+* Author: Chenxin Li, Postdoc researcher, Center for Applied Genetic Technologies, UGA  
+* Contact: chenxin.li@uga.edu | [@ChenxinLi2](https://twitter.com/ChenxinLi2)
+
+Required software:
+
+* R: [R Download](https://cran.r-project.org/bin/)
+* RStudio: [RStudio Download](https://www.rstudio.com/products/rstudio/download/)
+* rmarkdown can be installed using the intall packages interface in RStudio
 
 # Content
 This repository has 14 activities: 
