@@ -29,12 +29,12 @@ library(viridis)
 
 ## Chi-squared goodness of fit test
 
-You did two crosses.\
-You crossed a Aa mother to a AA father, you got 30 Aa and 60 AA.\
-You crossed a AA mother to a Aa father, you got 55 Aa and 50 AA.\
+You did two crosses. 
+You crossed a Aa mother to a AA father, you got 30 Aa and 60 AA. 
+You crossed a AA mother to a Aa father, you got 55 Aa and 50 AA. 
 (The expected proportions should be 1:1.)
 
-Is there distortion of segregation ratio in either of the crosses?\
+Is there distortion of segregation ratio in either of the crosses? 
 If so, which parent is the defect associated with?
 
 ```{r}
@@ -42,17 +42,17 @@ chisq.test(x = c(30, 60), p = c(0.5, 0.5))
 chisq.test(x = c(55, 50), p = c(0.5, 0.5))
 ```
 
-There is a significant distortion of segregation ratio in the Aa mom x AA dad cross (p = 0.0016)\
+There is a significant distortion of segregation ratio in the Aa mom x AA dad cross (p = 0.0016) 
 This indicates the defects are associated with the maternal parent.
 
 ## Contingency tables and enrichment
 
-In an experiment, you self an Aa plant. You got 95 F1 offspring.\
-89 of them germinated, 6 of them didn't.\
-Among the germinated ones, you have 16 aa, 51 Aa and 22 AA.\
+In an experiment, you self an Aa plant. You got 95 F1 offspring. 
+89 of them germinated, 6 of them didn't. 
+Among the germinated ones, you have 16 aa, 51 Aa and 22 AA. 
 Among the non-germinated (dead) ones, you have 5 aa, 0 Aa and 1 AA.
 
-Set up a contingency table and test if aa genotype is significantly associated with dead offspring.\
+Set up a contingency table and test if aa genotype is significantly associated with dead offspring. 
 I.e., Is aa seeds enriched in dead seeds?
 
 |   header   | aa  | Aa  | AA  | total |
@@ -66,7 +66,7 @@ fisher.test(rbind(c(16, 51, 22),
                   c(5, 0, 1)))
 ```
 
-We have p = 0.0007.\
+We have p = 0.0007. 
 So aa genotype is preferentially associated with dead seeds.
 
 ### Test the same hypothesis using the hypergeometric test.
@@ -79,5 +79,5 @@ phyper(q = 5,
        lower.tail = F)
 ```
 
-Does the conclusions for the tests agree with each other?\
+Does the conclusions for the tests agree with each other? 
 Yes. aa seeds are enriched among dead seeds.

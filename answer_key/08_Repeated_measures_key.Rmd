@@ -36,14 +36,14 @@ library(viridis)
 
 # Exercise
 
-Now you have learned how to deal with repeated measures in an experiment,\
+Now you have learned how to deal with repeated measures in an experiment,
 it's time for you to practice.
 
-We will use a mint growth experiment as an example.\
-In this experiment, the researchers looked at the effect of 6 treatments (A - F) on mint growth.\
-Each treatment has 3 pots.\
-Each pot has 4 plants. The treatment was applied to the pot, not the individual plants.\
-The growth of each plant in each pot was measured.\
+We will use a mint growth experiment as an example.
+In this experiment, the researchers looked at the effect of 6 treatments (A - F) on mint growth.
+Each treatment has 3 pots.
+Each pot has 4 plants. The treatment was applied to the pot, not the individual plants.
+The growth of each plant in each pot was measured.
 (Data from UC Davis Plant Sciences course PLS205, Winter 2017)
 
 ```{r}
@@ -52,11 +52,11 @@ head(mint_data)
 tail(mint_data)
 ```
 
-There is a problem with how the data were recorded. Maybe it's not obvious to you.\
-In each treatment, the name of the Pot is all Pot_1, Pot_2 and Pot_3.\
-However, in the actual experiment, Pot_1 from Treatment A is not the same Pot_1 for Treatment B, or CDEF.\
-The same applies to Pot_2 and Pot_3.\
-Simply put, the pots in each treatment need to have their own unique identifier.\
+There is a problem with how the data were recorded. Maybe it's not obvious to you.
+In each treatment, the name of the Pot is all Pot_1, Pot_2 and Pot_3.
+However, in the actual experiment, Pot_1 from Treatment A is not the same Pot_1 for Treatment B, or CDEF.
+The same applies to Pot_2 and Pot_3.
+Simply put, the pots in each treatment need to have their own unique identifier.
 Let's fix that first
 
 ```{r}
@@ -81,7 +81,7 @@ mint_data %>%
   ggplot(aes(x = Trtmt, y = Growth)) +
   geom_point(aes(fill = Trtmt), size = 3, color = "white", shape = 21,
              position = position_jitter(0.1, seed = 666)) +
-  scale_fill_brewer(type = "qual", palette = "Dark2") +
+  scale_fill_brewer(type = "qual", palette = "Set2") +
   labs(y = "Growth",
        x = "Treatment") +
   theme_minimal() +
@@ -105,7 +105,8 @@ Fill in the table and write down the model. What are the sources of variation? W
 |  Pot   |    EU     |   18   |
 | Plant  |    OU     |   72   |
 
-What is the experimental unit for treatment? Pot\
+What is the experimental unit for treatment? Pot
+
 What is the observational unit? Plant
 
 Set up the linear model.
@@ -140,7 +141,7 @@ How would you interpret the ANOVA table?
 anova(model_mint)
 ```
 
-Means are statistically different across treatments (F = 16, P \< 0.05)
+Means are statistically different across treatments (F = 16, P < 0.05)
 
 ## Tukey test
 
@@ -151,5 +152,5 @@ estimate_mint <- emmeans(model_mint, pairwise ~ Trtmt)
 cld(estimate_mint$emmeans, Letters = letters)
 ```
 
-Treatment F are numerically highest,\
+Treatment F are numerically highest,
 although not significantly different from and treatments D and E (sharing letter c)

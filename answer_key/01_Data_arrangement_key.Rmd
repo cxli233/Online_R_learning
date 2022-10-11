@@ -20,16 +20,16 @@ As a resource, you can download [the data wrangling cheat sheet](https://rstudio
 # Load packages
 
 ```{r}
-library(tidyr) #data arrangement
-library(dplyr) #data arrangement 
-library(readr) #readling tab, comma and space separated tables into R
-library(readxl) #reading excel into R 
-library(ggplot2) #R plotting engine 
+library(tidyr) # data arrangement
+library(dplyr) # data arrangement 
+library(readr) # reading tab, comma and space separated tables into R
+library(readxl) # reading excel into R 
+library(ggplot2) # R plotting engine 
 ```
 
 ```{r}
-child_mortality <- read_csv("../data/child_mortality_0_5_year_olds_dying_per_1000_born.csv") 
-babies_per_woman <- read_csv("../data/children_per_woman_total_fertility.csv") 
+child_mortality <- read_csv("../data/child_mortality_0_5_year_olds_dying_per_1000_born.csv", col_types = cols()) 
+babies_per_woman <- read_csv("../data/children_per_woman_total_fertility.csv", col_types = cols()) 
 ```
 
 ```{r}
@@ -39,12 +39,12 @@ head(babies_per_woman)
 
 ```{r}
 babies_per_woman_tidy <- babies_per_woman %>% 
-  gather("year", "birth", c(2:302)) 
+  pivot_longer(names_to = "year", values_to = "birth", cols = c(2:302)) 
 
 head(babies_per_woman_tidy)
 
 child_mortality_tidy <- child_mortality %>% 
-  gather("year", "death_per_1000_born", c(2:302)) 
+  pivot_longer(names_to = "year", values_to = "death_per_1000_born", cols = c(2:302)) 
 
 head(child_mortality_tidy)
 ```
@@ -57,91 +57,92 @@ head(birth_and_mortality)
 ```
 
 # Exercise
-
-You have learned data arrangement! Let's do an exercise to practise what you have learned today.\
+You have learned data arrangement! Let's do an exercise to practice what
+you have learned today. 
 As the example, this time we will use income per person dataset from Gapminder foundation.
 
 ```{r}
-income <- read_csv("../data/income_per_person_gdppercapita_ppp_inflation_adjusted.csv") 
+income <- read_csv("../data/income_per_person_gdppercapita_ppp_inflation_adjusted.csv", col_types = cols()) 
 head(income)
 ```
 
 ## Tidy data
 
-Is this a tidy data frame?\
-Make it a tidy data frame using this code chunck.\
-Hint: the years are spreat out from columns 2 to 242
+Is this a tidy data frame?
+Make it a tidy data frame using this code chunk.
+Hint: the years are spread out from columns 2 to 242.
 
 ```{r}
-income_long <- income %>% 
-  gather("year", "income", 2:242)
+income_tidy <- income %>% 
+  pivot_longer(names_to = "year", values_to = "income", cols = c(2:242))
 
-head(income_long)
+head(income_tidy)
 ```
 
 ## Joining data
 
-Combine the income data with birth per woman and child mortality data using this code chunck\
-Name the new data frame birth_and_mortality_and_income
+Combine the income data with birth per woman and child mortality data using this code chunk.
+Name the new data frame "birth_and_mortality_and_income".
 
 ```{r}
 birth_and_mortality_and_income <- birth_and_mortality %>% 
-  inner_join(income_long, by = c("country", "year"))
+  inner_join(income_tidy, by = c("country", "year"))
 
 head(birth_and_mortality_and_income)
 ```
 
 ## Filtering data
 
-Filter out the data for Bangladesh and Sweden, in years 1945 (when WWII ended) and 2010.\
-Name the new data frame BS_1945_2010\
+Filter out the data for Bangladesh and Sweden, in years 1945 (when WWII ended) and 2010.
+Name the new data frame BS_1945_2010.
 How has income, birth per woman and child mortality rate changed during this 55-year period?
 
 ```{r}
-BS_1945_2010 <- birth_and_mortality_and_income %>% 
-  filter(year == 1945 |
-           year == 2010) %>% 
+birth_and_mortality_and_income %>% 
   filter(country == "Bangladesh" |
-           country == "Sweden")
-
-BS_1945_2010
+           country == "Sweden") %>% 
+  filter(year == 1945 |
+           year == 2010)
 ```
 
 ## Mutate data
 
-Let's say for countries with income between 1000 to 10,000 dollars per year, they are called "fed",\
-For countries with income above 10,000 dollars per year, they are called "wealthy".\
+Let's say for countries with income between 1000 to 10,000 dollars per year, they are called "fed".
+For countries with income above 10,000 dollars per year, they are called "wealthy".
 Below 1000, they are called "poor".
 
-Using this info to make a new column called "status".\
-Hint: you will have to use case_when() and the "&" logic somewhere in this chunck.
+Using this info to make a new column called "status".
+Hint: you will have to use case_when() and the "&" logic somewhere in this chunk.
 
 ```{r}
 birth_and_mortality_and_income <- birth_and_mortality_and_income %>% 
   mutate(status = case_when(
     income < 1000 ~ "poor",
-    income >= 1000 & income < 10000 ~ "fed",
+    income >= 1000 & 
+      income < 10000 ~ "fed",
     income >= 10000 ~ "wealthy"
   ))
+
+head(birth_and_mortality_and_income)
 ```
 
 ## Summarise the data
 
-Let's look at the average child mortality and its sd in year 2010 across countries across different status that we just defined\
-Name the new data frame child_mortality_summmary_2010
+Let's look at the average child mortality and its sd in year 2010. 
+across countries across different status that we just defined. 
+Name the new data frame "child_mortality_summmary_2010".
 
 ```{r}
 child_mortality_summmary_2010 <- birth_and_mortality_and_income %>% 
-  filter(year == 2010) %>% 
   group_by(status) %>% 
-  summarise(
-    mean = mean(death_per_1000_born),
-    sd = sd(death_per_1000_born)
-  )
+  filter(year == 2010) %>% 
+  summarise(mean_death = mean(death_per_1000_born),
+            sd_death = sd(death_per_1000_born)) %>% 
+  ungroup()
 
 child_mortality_summmary_2010
 ```
 
 How does child mortality compare across income group in year 2010?
 
-Wealthy countries have the least child mortality, followed by fed countries and poor countries have the most.
+ 

@@ -30,12 +30,12 @@ library(viridis)
 ```
 
 ```{r}
-qPCR <- read_delim("../data/SYBR_Green.txt", delim = "\t")
+qPCR <- read_delim("../data/SYBR_Green.txt", delim = "\t", col_types = cols)
 head(qPCR)
 ```
 
-In this table, each row is a PCR cycle. We have 36 rows, so 36 PCR cycles.\
-Each column is a PCR reaction. I was doing the experiment in a 96-well plate, so the data are spreat out in 96 columns.
+In this table, each row is a PCR cycle. We have 36 rows, so 36 PCR cycles.
+Each column is a PCR reaction. I was doing the experiment in a 96-well plate, so the data are spread out in 96 columns.
 
 Let's visualize the data first
 
@@ -47,11 +47,12 @@ qPCR %>%
   geom_line(aes(group = well, color = well), size = 1, alpha = 0.8) +
   scale_color_viridis_d() +
   theme_minimal() +
-  theme(legend.position = "none") +
-  theme(axis.line = element_line(size = 1.2)) +
-  theme(panel.grid = element_line(color = "grey60")) +
-  theme(text = element_text(size = 12, color = "black", face = "bold")) +
-  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) 
+  theme(legend.position = "none",
+        axis.line = element_line(size = 1.2),
+        panel.grid = element_line(color = "grey60"),
+        text = element_text(size = 12, color = "black", face = "bold"),
+        axis.text = element_text(size = 12, color = "black", face = "bold")
+        ) 
 ```
 
 The logit and logistic functions are defined as the following:
@@ -68,14 +69,14 @@ logistic <- function(x){
 
 # Exercise
 
-Now you have learned how to run a logistic regression.\
+Now you have learned how to run a logistic regression.
 It's time to practice.
 
 This time we'll use the data from qPCR well A7.
 
 ## Fit a logistic regression model for well A7
 
-1)  What is Ymax for A7?
+1.  What is Ymax for A7?
 
 ```{r}
 max(qPCR$A7)
@@ -88,7 +89,7 @@ qPCR_new <- qPCR %>%
   mutate(A7_scaled = A7/max(A7))
 ```
 
-2)  What is the equation for A7? What the R\^2 and what does it mean?
+2.  What is the equation for A7? What the R^2 and what does it mean?
 
 ```{r}
 model_A7 <- glm(A7_scaled ~ Cycle, data = qPCR_new, family = binomial(link = "logit"))
@@ -99,12 +100,12 @@ summary(model_A7)
 rsq(model_A7, type = "sse")
 ```
 
-The equation will be:\
-Y = 1/(1 + e\^-(0.3098 \* Cycle - 3.2721))
+The equation will be:
+Y = 1/(1 + e^-(0.3098 * Cycle - 3.2721))
 
-R\^2 is 0.988.
+R^2 is 0.988.
 
-3)  Visualize your model. Make your plot here:\
+3.  Visualize your model. Make your plot here:
 
 ```{r}
 model_A7_fitted <- data.frame(
@@ -119,14 +120,15 @@ qPCR %>%
   geom_point(size = 2, alpha = 0.8) +
   geom_line(data = model_A7_fitted, size = 1.2, color = "indianred1") +
   theme_minimal() +
-  theme(legend.position = "none") +
-  theme(axis.line = element_line(size = 1.2)) +
-  theme(panel.grid = element_line(color = "grey60")) +
-  theme(text = element_text(size = 12, color = "black", face = "bold")) +
-  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+  theme(legend.position = "none",
+        axis.line = element_line(size = 1.2),
+        panel.grid = element_line(color = "grey60"),
+        text = element_text(size = 12, color = "black", face = "bold"),
+        axis.text = element_text(size = 12, color = "black", face = "bold")
+        ) 
 ```
 
-4)  Find the inflection point for A7.
+4.  Find the inflection point for A7.
 
 ```{r}
 3.2721/0.3098
@@ -139,4 +141,4 @@ max(qPCR$A7) /(1 + exp(-(0.3098 * 10.56 - 3.2721)))
 1/(1 + exp(-(0.3098 * 10.56198 - 3.2721)))
 ```
 
-At this point, the y value is \~1/2 of Ymax.
+At this point, the y value is ~1/2 of Ymax.

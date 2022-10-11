@@ -27,8 +27,8 @@ library(RColorBrewer)
 library(viridis)
 ```
 
-We will use the potato yield experiment as an example.\
-We are looking at the yield of two potato varieties across 5 nitrogen inputs.\
+We will use the potato yield experiment as an example.
+We are looking at the yield of two potato varieties across 5 nitrogen inputs.
 (Data from UC Davis Plant Sciences course PLS205, Winter 2017)
 
 ```{r}
@@ -38,7 +38,7 @@ head(potato)
 
 # Exercise
 
-Now that you have learned how to do polynomial curve fitting,\
+Now that you have learned how to do polynomial curve fitting,
 it's time for you to practice.
 
 This time we'll use the data for the variety "Russet Burbank" in the potato yield data.
@@ -50,10 +50,10 @@ Burbank <- potato %>%
 
 ## Fit a polynomial model
 
-Make the following models:\
-Y \~ a + bx,\
-Y \~ a + bx + cx\^2, and\
-Y \~ a + bx + Cx\^2 + dx\^3
+Make the following models:
+Y ~ a + bx,
+Y ~ a + bx + cx^2, and
+Y ~ a + bx + Cx^2 + dx^3
 
 Identify the optimal model among them.
 
@@ -72,18 +72,18 @@ model_rb3 <- lm(Yield ~ I(Nitrogen) + I(Nitrogen^2) + I(Nitrogen^3), data = Burb
 summary(model_rb3)
 ```
 
-We have 5 levels of nitrogen, so the highest power we can get is x\^(5-2) = x\^3 The 3rd power equation still has the highest adjusted R\^2, so we will go with the 3rd power model.
+We have 5 levels of nitrogen, so the highest power we can get is x^(5-2) = x^3 The 3rd power equation still has the highest adjusted R^2, so we will go with the 3rd power model.
 
-What is the equation for the polynomial? Yield = 451 + 1.876 \* Nitrogen - 0.0153 \* Nitrogen\^2 + 3.809e-5 \* Nitrogen\^3
+What is the equation for the polynomial? Yield = 451 + 1.876 * Nitrogen - 0.0153 * Nitrogen^2 + 3.809e-5 * Nitrogen^3
 
-What is the adjusted R\^2? 0.369. 36.9% of the variances in the data can be explained by the model. Not the best, but it is what it is.
+What is the adjusted R^2? 0.369. 36.9% of the variances in the data can be explained by the model. Not the best, but it is what it is.
 
 ```{r}
 plot(model_rb3, which = c(1, 2, 3))
 ```
 
-The residues are pretty normally distributed.\
-The other two diagnostic plots look a little strange at the mid-range.\
+The residues are pretty normally distributed.
+The other two diagnostic plots look a little strange at the mid-range.
 But it doesn't look like a huge problem.
 
 ## Visualize the model
@@ -108,9 +108,9 @@ Burbank %>%
              position = position_jitter(5, seed = 666)) +
   geom_line(data = fitted_burbank, color = "indianred", size = 1.2) +
   theme_minimal() +
-  theme(axis.line = element_line(size = 1.2)) +
-  theme(text = element_text(size = 12, color = "black", face = "bold")) +
-  theme(axis.text = element_text(size = 12, color = "black", face = "bold"))
+  theme(axis.line = element_line(size = 1.2),
+        text = element_text(size = 12, color = "black", face = "bold"),
+        axis.text = element_text(size = 12, color = "black", face = "bold"))
 ```
 
 ## Make prediction

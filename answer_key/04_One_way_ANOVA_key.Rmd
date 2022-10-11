@@ -59,7 +59,7 @@ wisteria <- c("grey65", "burlywood3", "khaki2", "plum1", "lightcyan2", "cornflow
        y = "bill length (mm)") +
   theme_minimal() +
   theme(axis.line = element_line(size = 1.2),
-        text = element_text(size = 18, color = "black", face = "bold"),
+        text = element_text(size = 12, color = "black", face = "bold"),
         axis.text = element_text(color = "black"),
         legend.position = "none")
 ```
@@ -87,7 +87,7 @@ penguins %>%
        y = "bill length (mm)") +
   theme_minimal() +
   theme(axis.line = element_line(size = 1.2),
-        text = element_text(size = 18, color = "black", face = "bold"),
+        text = element_text(size = 12, color = "black", face = "bold"),
         axis.text = element_text(color = "black"),
         legend.position = "none")
 ```
@@ -122,5 +122,5 @@ estimate_depth$contrast
 cld(estimate_depth$emmeans, Letters = letters)
 ```
 
-Gentoo has the least deep bill.\
+Gentoo has the least deep bill.
 The other two species are not statistically different from each other.

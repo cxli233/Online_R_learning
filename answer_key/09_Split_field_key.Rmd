@@ -34,14 +34,14 @@ library(viridis)
 
 # Exercise
 
-Now you have learned how to handle a split field experiment.\
+Now you have learned how to handle a split field experiment.
 It's time for you to practice.
 
-We'll use an oat data as an example.\
-In this experiment, we are looking at the effect of fertilizer across 4 variety of oats.\
-We have 4 blocks.\
-Within each block, it is divided into 4 main-plots. Each main-plot is given a fertilizer treatment (1 - 4).\
-Within each main-plot, it is sub-divided into 4 subplots. Each subplot is given a variety of oat (1 - 4).\
+We'll use an oat data as an example.
+In this experiment, we are looking at the effect of fertilizer across 4 variety of oats.
+We have 4 blocks.
+Within each block, it is divided into 4 main-plots. Each main-plot is given a fertilizer treatment (1 - 4).
+Within each main-plot, it is sub-divided into 4 subplots. Each subplot is given a variety of oat (1 - 4).
 At the end of the experiment, oat from each subplot is harvest and the yield is recorded. (Data from UC Davis Plant Sciences course PLS205, Winter 2017)
 
 ```{r}
@@ -49,7 +49,7 @@ oats_data <- read_csv("../data/Oats.csv")
 head(oats_data)
 ```
 
-WARNING: is there any numerically recorded variables you need to change to factors?\
+WARNING: is there any numerically recorded variables you need to change to factors?
 (Hint: there are 4 of them.)
 
 WARNING: does each main-plot has its unique identifier?
@@ -66,9 +66,9 @@ oats_data <- oats_data %>%
 
 Visualize the data before starting the analysis. Plot Yield on y axis.
 
-What to plot on the x axis?\
-what to color/fill with?\
-Any faceting you want to use?\
+What to plot on the x axis?
+what to color/fill with?
+Any faceting you want to use?
 Make the best plot you can here:
 
 ```{r}
@@ -76,7 +76,7 @@ oats_data %>%
   ggplot(aes(x = Fertilizer.F, y = Yield)) +
   geom_point(aes(fill = Variety.F), size = 3, color = "white", shape = 21,
              position = position_jitter(0.1, seed = 666)) +
-  scale_fill_brewer(type = "qual", palette = "Dark2") +
+  scale_fill_brewer(type = "qual", palette = "Set2") +
   labs(y = "Yield",
        x = "Fertilizer") +
   theme_minimal() +
@@ -102,10 +102,10 @@ Fill in the design table.
 
 Subplot is the EU for variety
 
-What are the treatments? Fertilizer and variety\
-Any blocking factors? Block\
-What is the EU for each treatment?\
-EU for fertilizer is main-plot\
+What are the treatments? Fertilizer and variety
+Any blocking factors? Block
+What is the EU for each treatment?
+EU for fertilizer is main-plot
 EU for variety is subplot
 
 What is the OU? Subplot
@@ -140,10 +140,10 @@ Fine.
 anova(model_oats)
 ```
 
-Variety perform similarly across all treatments (P \> 0.05)\
-Fertilizer has some effect on yield.\
-Block has the strongest effect (F = 29). Although as the blocking factor this is not what are interested in.\
-The interaction between Variety and fertilizer is also significant (P = 0.03)
+Variety perform similarly across all treatments (P > 0.05)
+Fertilizer has some effect on yield.
+Block has the strongest effect (F = 29). Although as the blocking factor this is not what are interested in.
+The interaction between Variety and fertilizer is also significant (P = 0.03).
 
 ## Run Tukey test and identify the best performing oat variety in each fertilizer treatment
 
@@ -154,8 +154,8 @@ cld(estimate_oat_per_fert$emmeans, Letters = letters)
 
 Which variety performed the best?
 
-There is no statistically significant differences in Fert 2,3 and 4.\
+There is no statistically significant differences in Fert 2,3 and 4.
 In Fert 1, variety 2 has the best yield, although not significantly different from Var 3.
 
-Comment: Looking at the anova table and the graph, it should be obvious that the interesting factor here is Fert, not Var.\
+Comment: Looking at the anova table and the graph, it should be obvious that the interesting factor here is Fert, not Var.
 So the more informative Tukey test is to test different across different Fert treatments.

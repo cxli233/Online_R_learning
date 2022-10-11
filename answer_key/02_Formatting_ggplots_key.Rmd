@@ -29,7 +29,7 @@ library(readxl)
 
 # Exercise - Now time for you to try
 
-Let's use the R built-in dataset CO2 as example\
+Let's use the R built-in dataset CO2 as example: 
 Ref: Potvin, C., Lechowicz, M. J. and Tardif, S. (1990), Ecology, 71, 1389--1400.
 
 ```{r}
@@ -37,16 +37,17 @@ head(CO2)
 str(CO2)
 ```
 
-Task: produce a plot that includes the info for Type and Treatment, with uptake on Y axis.\
-Let's say we are interested in the effect of "Treament" in each Type.
+Task: produce a plot that includes the info for Type and Treatment, with uptake on Y axis.
+Let's say we are interested in the effect of "Treatment" in each Type.
 
 Hint:
 
-1)  What should be on the x axis?\
-2)  What variable do you color or fill with?\
-3)  What faceting layout do you want to use?
+1.  What should be on the x axis?
+2.  What variable do you color or fill with?
+3.  What faceting layout do you want to use?
 
 Now try to make the best plot you can!
+
 
 ```{r}
 CO2 %>% 
@@ -59,11 +60,12 @@ CO2 %>%
                     limits = c("nonchilled", "chilled")) +
   labs(x = "Type") +
   theme_minimal()+
-  theme(legend.position = "top") +
-  theme(axis.line = element_line(size = 1.2)) + 
-  theme(panel.spacing.x = unit(1, "lines")) +
-  theme(text = element_text(size = 18, color = "black", face = "bold")) +
-  theme(axis.text.x = element_blank()) +
-  theme(axis.text = element_text(size = 12, color = "black", face = "bold")) +
-  theme(strip.placement = "outside")
+  theme(legend.position = "top",
+        axis.line = element_line(size = 1.2),
+        panel.spacing.x = unit(1, "lines"),
+        text = element_text(size = 12, color = "black", face = "bold"),
+        axis.text.x = element_blank(),
+        axis.text = element_text(size = 12, color = "black", face = "bold"),
+        strip.placement = "outside"
+        )
 ```

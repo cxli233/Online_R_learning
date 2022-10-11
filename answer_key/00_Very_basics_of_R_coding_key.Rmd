@@ -25,22 +25,29 @@ Today you have learned some basic syntax of R. Now it's time for you to practice
 
 ## Q1:
 
-1)  Insert a new code chunk
-2)  make this matrix
+# Excerice
 
-| \| 1 \| 1 \| 2 \| 2 \|
-| \| 2 \| 2 \| 1 \| 2 \|
-| \| 2 \| 3 \| 3 \| 4 \|
-| \| 1 \| 2 \| 3 \| 4 \|
+Today you have learned some basic syntax of R.
+Now it's time for you to practice.
 
-and save it as an item called my_mat2
+## Q1:
 
-\
-3. select the 1st and 3rd rows and the 1st, 2nd and 4th columns, and save it as an item.
+1.  Insert a new code chunk
+2.  Make this matrix
 
-\
-4. take the square root for each member of my_mat2, then take log2(), and lastly find the maximum value. Use the pipe syntax.\
-The command for maximum is `max()`.
+| 1  | 1 | 2 | 2 |
+| 2  | 2 | 1 | 2 |
+| 2  | 3 | 3 | 4 |
+| 1  | 2 | 3 | 4 |
+
+and save it as an item called `my_mat2`.
+
+3. Select the 1st and 3rd rows and the 1st, 2nd and 4th columns, and save it as an item.
+
+4. Take the square root for each member of my_mat2, then take log2(), and lastly find the maximum value.
+Use the pipe syntax. The command for maximum is `max()`.
+
+
 
 ```{r}
 my_mat2 <- rbind(
@@ -62,10 +69,14 @@ my_mat2 %>%
 
 ## Q2:
 
-1)  Insert a code chunk
-2)  Use the following info to make a data frame and save it as an item called grades.\
-    Adel got 85 on the exam, Bren got 83 and Cecil got 93. Their letter grades are B, B, and A, respectively.\
-3)  Pull out the column with the scores. Use the `$` syntax.
+1.  Use the following info to make a data frame and save it as an item called "grade".
+    Adel got 85 on the exam, Bren got 83, and Cecil got 93.
+    Their letter grades are B, B, and A, respectively.
+    (Hint: How many columns do you have to have?)
+
+2. Pull out the column with the scores.
+    Use the `$` syntax.
+
 
 ```{r}
 grades <- data.frame(

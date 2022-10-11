@@ -60,14 +60,16 @@ stem_data <- read_excel("../data/LU-Matand - Stem Data.xlsx")
 head(stem_data)
 ```
 
-In this experiment, the researchers were lookling at the effect of explant in daylily tissue culture.\
-(Data from Matand et al. 2020. BMC Plant Bio)\
-They took three types of explant (cut stem, inverted stem and split stem),\
-put those on agar plates and examined how well shoots regrew from them.\
-At the end of the experiment,\
-they counted the number of shoots from each tissue (Buds_Shoots column in the table).\
-There were other factors in this experiment, but let's ignore them for now.\
-They did this for a total of 19 daylily cultivars.\
+In this experiment, the researchers were lookling at the effect of explant in daylily tissue culture.
+(Data from Matand et al. 2020. BMC Plant Bio)
+
+
+They took three types of explant (cut stem, inverted stem and split stem),
+put those on agar plates and examined how well shoots regrew from them.
+At the end of the experiment,
+they counted the number of shoots from each tissue (Buds_Shoots column in the table).
+There were other factors in this experiment, but let's ignore them for now.
+They did this for a total of 19 daylily cultivars.
 For the sake of this exercise, let's just use one of the cultivars - "Alias".
 
 ```{r}
@@ -97,7 +99,7 @@ Alias %>%
   )
 ```
 
-Looking at the plot, do treatments have even spread?\
+Looking at the plot, do treatments have even spread?
 No. Split stem has a lot spread.
 
 ### Calculate the summary statistics using group_by() and summarise() for Buds_Shoots
@@ -111,13 +113,13 @@ No. Split stem has a lot spread.
   )
 ```
 
-Are the variances of treatments within a two-fold range?\
+Are the variances of treatments within a two-fold range?
 No.
 
 ### Linear model
 
-Which data transformation would be helpful for this experiment?\
-Check the assumptions (normality & equal variance) of BOTH original AND transformed data.\
+Which data transformation would be helpful for this experiment?
+Check the assumptions (normality & equal variance) of BOTH original AND transformed data.
 Does the data transformation help?
 
 ```{r}
@@ -139,7 +141,7 @@ The log-transformed model looks better.
 
 ### Interpretation
 
-Run ANOVA and Tukey tests for BOTH original AND transformed data.\
+Run ANOVA and Tukey tests for BOTH original AND transformed data.
 Did data transformation (or the lack of) change your conclusions?
 
 ```{r}
@@ -155,14 +157,14 @@ estimate_1$contrast
 estimate_log$contrast
 ```
 
-Essentially the same results for no transformation and log transformation
+Essentially the same results for no transformation and log transformation.
 
 ### Reporting
 
-Report the estimated means and confidence intervals for the treatments in the cld format.\
+Report the estimated means and confidence intervals for the treatments in the cld format.
 Don't forget to de-transform if you go with a data transformation.
 
-Because data transformation didn't change the conclusion at all,\
+Because data transformation didn't change the conclusion at all,
 for reporting I'm going with the un-transformed model
 
 ```{r}
