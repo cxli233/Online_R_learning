@@ -17,16 +17,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduction
 
-We covered one-way ANOVA, randomized block design, and multifactorial design.\
-As you may have already figured, we started with simple experimental designs,\
+We covered one-way ANOVA, randomized block design, and multifactorial design.
+As you may have already figured, we started with simple experimental designs,
 and gradually move towards more complex experimental designs.
 
 This time, we will cover experimental designs involving repeated measures. We will cover
 
-1)  Why is repeated measure a problem for ANOVA?
-2)  What is a random effect?
-3)  How to set up a mixed effect model?
-4)  How to analyze a mixed effect model?
+1.  Why is repeated measure a problem for ANOVA?
+2.  What is a random effect?
+3.  How to set up a mixed effect model?
+4.  How to analyze a mixed effect model?
 
 # Load packages
 
@@ -49,44 +49,44 @@ library(viridis)
 
 # Why is repeated measure a problem for ANOVA
 
-Repeated measures refer to the fact that in some experiments, the same entity is measured multiple times.\
+Repeated measures refer to the fact that in some experiments, the same entity is measured multiple times.
 How could that be?
 
 Let's imagine an experiment like this:
 
-Say I am tracking the heights of some rice plants over time.\
+Say I am tracking the heights of some rice plants over time.
 Every week, I go to measure the height of those plants.
 
-And *THAT* is a kind of repeated measure. The same plants are measured multiple times throughout the experiment.\
-Whenever the same entity is measured multiple times (either across time or space),\
+And *THAT* is a kind of repeated measure. The same plants are measured multiple times throughout the experiment.
+Whenever the same entity is measured multiple times (either across time or space),
 it is a repeated measures experiment.
 
-Let's go over another example.\
-Say I am interested in the number of seeds per plant across two genotypes of rice.\
-There are three pots per genotype, and three plants per pot. (All three plants in a pot are the same genotype.)\
+Let's go over another example.
+Say I am interested in the number of seeds per plant across two genotypes of rice.
+There are three pots per genotype, and three plants per pot. (All three plants in a pot are the same genotype.)
 Then I count the number of seeds in each plant.\
-And *THAT* is a repeated measure. The pots are being repeatedly measured for the plants in them.\
+And *THAT* is a repeated measure. The pots are being repeatedly measured for the plants in them.
 And the pots cannot be used as a blocking factor, because there is only one genotype per pot.
 
-But why is that a problem?\
-Remember, the assumption of ANOVA is that each observation is independent of the other.\
-And repeated measures is a violation of that assumption.\
-When multiple measurements of the same entity were taken,\
-those measurements will NOT be independent of each other,\
+But why is that a problem?
+Remember, the assumption of ANOVA is that each observation is independent of the other.
+And repeated measures is a violation of that assumption.
+When multiple measurements of the same entity were taken,
+those measurements will NOT be independent of each other,
 because they are all affected by the same entity.
 
-Repeated measures always reduce the number of independent observations you have,\
+Repeated measures always reduce the number of independent observations you have,
 and one must correct for repeated measures when repeated measures arise.
 
 # Working with repeated measures - using random effects
 
 To correct for repeated measures, we need to declare the entities that are repeatedly measured as "random effects".
 
-This is a very abstract concept. So the best way to explain is to use an example.\
+This is a very abstract concept. So the best way to explain is to use an example.
 We'll use an actual experiment I did as the example.
 
-I was comparing the height of two rice genotypes, WT and mutant, through time.\
-Every week I went to measure the heights of those plants.\
+I was comparing the height of two rice genotypes, WT and mutant, through time.
+Every week I went to measure the heights of those plants.
 (Data from Sundaresan Lab, Department Of Plant Biology, UC Davis)
 
 ```{r}
@@ -94,14 +94,14 @@ rice_growth <- read_csv("../data/rice_growth_data.csv")
 head(rice_growth)
 ```
 
-In this experiment, each pot was randomly assigned a genotype, either WT or mutant. The mutant is called "48/48".\
-There was one plant per pot.\
-The total of 48 pots were randomly placed into 6 flats, and 8 pots per flat.\
-So the flat was a blocking factor.\
+In this experiment, each pot was randomly assigned a genotype, either WT or mutant. The mutant is called "48/48".
+There was one plant per pot.
+The total of 48 pots were randomly placed into 6 flats, and 8 pots per flat.
+So the flat was a blocking factor.
 I measured the height every week, starting from week 3 to week 9, but I skipped week 8, so total of 6 time points.
 
-Before we talk about random effects, we need to talk about fixed effects.\
-Simply put, the fixed effects are your treatments.\
+Before we talk about random effects, we need to talk about fixed effects.
+Simply put, the fixed effects are your treatments.
 In this example, I have two fixed effects: genotype and age.
 
 Let's look at all the factors in this experiment
@@ -113,11 +113,11 @@ Let's look at all the factors in this experiment
 |  flat   | block  |   6    |
 |   pot   |  *EU*  |   48   |
 
-Because there are two independent variables (time and genotype) and one blocking factor,\
+Because there are two independent variables (time and genotype) and one blocking factor,
 this experiment will be called a randomized block multifactorial design.
 
-*Note* In this example, plant or pot is the experimental unit for genotype,\
-because the treatment of genotype was applied to each pot, and there is only one plant in each pot.\
+*Note* In this example, plant or pot is the experimental unit for genotype,
+because the treatment of genotype was applied to each pot, and there is only one plant in each pot.
 *Note* Pot is also the entity that has been repeatedly measured through weeks.
 
 You might ask, then where is the observational unit?\
@@ -125,50 +125,50 @@ The OU is actual the plant at each week, or the plant:week combination.
 
 Coming back to random effects. What is a random effect?
 
-1)  A random effect *CANNOT* be a treatment (because they are fixed effects);\
-2)  An EU that is not an OU must be declared as a random effect;\
-3)  An entity that is repeatedly measured must be declared as a random effect;\
-4)  Blocking factors can be declared as random effects, but they don't have to.
+1.  A random effect *CANNOT* be a treatment (because they are fixed effects);
+2.  An EU that is not an OU must be declared as a random effect;
+3.  An entity that is repeatedly measured must be declared as a random effect;
+4.  Blocking factors can be declared as random effects, but they don't have to.
 
-So in this example, what needs to be declared as a random effect?\
-The pot needs to be declared as a random effect,\
+So in this example, what needs to be declared as a random effect?
+The pot needs to be declared as a random effect,
 since it is both the EU for genotype and the entity of repeated measures.
 
 # Setting up a mixed effect model
 
-A mixed effect model refers to a model that contains both fixed effects and random effects.\
-A mixed effect model is appropriate for this experiment,\
+A mixed effect model refers to a model that contains both fixed effects and random effects.
+A mixed effect model is appropriate for this experiment,
 because we have two fixed effects (time and genotype) and one random effect (pot).
 
-How do I set up the model?\
-To set up the mixed effect model, we will need a new function.\
+How do I set up the model?
+To set up the mixed effect model, we will need a new function.
 Instead of `lm()`, we will use `lmer()`. This will be the command for mixed effect linear model.
 
-To specify a random effect, we'll use the `(1|random_effect)` syntax.\
+To specify a random effect, we'll use the `(1|random_effect)` syntax.
 In this example, it will be `(1|pot)`
 
-In the model, you will put in your fixed effect and interactions first,\
-then you put in blocking factors,\
-then you put in random effects.\
-So the model will be `lmer(height ~ time + genotype + time:genotype + flat + (1|pot))`\
+In the model, you will put in your fixed effect and interactions first,
+then you put in blocking factors,
+then you put in random effects.
+So the model will be `lmer(height ~ time + genotype + time:genotype + flat + (1|pot))`
 You can also do `time*genotype + flat + (1|pot).` That gives you the same thing.
 
-Do not include the interactions with blocking factors (flat).\
-The blocking factor only exists to control for unintended variations.\
+Do not include the interactions with blocking factors (flat).
+The blocking factor only exists to control for unintended variations.
 And we are not interested in the flat:time or flat:genotype effects.
 
 You might ask can I do `height ~ genotype * time + flat + (1|plant)`? In an experiment like this, you should put the non-manipulative factor (time) first,\
 then you put the manipulative factor (genotype) second.
 
-The reason is that in a mixed effect model, the first factor in the model will account for variation first;\
-then the rest of the variation will be passed on to the second factor in the model,\
+The reason is that in a mixed effect model, the first factor in the model will account for variation first;
+then the rest of the variation will be passed on to the second factor in the model,
 and so on.
 
-By common sense, we know plants grow taller over time. So we expect that time explains more variation than genotype.\
+By common sense, we know plants grow taller over time. So we expect that time explains more variation than genotype.
 So we will put time first in the model.
 
-You can also declare flat as a random effect by using `(1|flat)`.\
-Either way is correct, but setting flat as a random effect is more conservative,\
+You can also declare flat as a random effect by using `(1|flat)`.
+Either way is correct, but setting flat as a random effect is more conservative,
 meaning you'll need a larger difference in mean to detect a significant difference
 
 Last thing: before you set up the model, is there any numeric variables that you need to change to factors?
@@ -185,7 +185,7 @@ model_rice <- lmer(Height_mm ~ age.f * genotype + (1|flat.f) + (1|pot), data = r
 
 # Data visualization
 
-Before we do any analysis, let's plot the data and look at it first.\
+Before we do any analysis, let's plot the data and look at it first.
 Plot age.f on x axis, and Height_mm on y axis. Color by genotype.
 
 Make the best plot you can here:
@@ -194,7 +194,7 @@ Make the best plot you can here:
 
 ```
 
-We can also pull out the summary statistics\
+We can also pull out the summary statistics.
 We'll need to group by genotype and age.f
 
 ```{r}
@@ -206,16 +206,17 @@ rice_growth %>%
             n = n()) 
 ```
 
-The variances seem to increase as the means increase, but I don't think it's too bad (not orders of magnitude different).\
-If you are interested, you can try a log transformation and compare results. I think the conclusions should practically be the same.
+The variances seem to increase as the means increase, but I don't think it's too bad (not orders of magnitude different).
+If you are interested, you can try a log transformation and compare results. 
+I think the conclusions should practically be the same.
 
 # Stats
 
 We have our model, now let's check the assumptions of ANOVA first.
 
-Normality?\
-It turns out the `plot(model, which = 2)` command wouldn't work on mixed effect models.\
-We will use `qqnorm(resid(model))` instead.\
+Normality?
+It turns out the `plot(model, which = 2)` command wouldn't work on mixed effect models.
+We will use `qqnorm(resid(model))` instead.
 The `resid()` function pull out all the residues in a model.
 
 ```{r}
@@ -230,8 +231,8 @@ Equal variance across groups?
 plot(model_rice)
 ```
 
-It turns out when you call `plot()` on a mixed effect model, it gives you the residue vs. mean plot.\
-The residues seem to be pretty evenly spread across the range of mean.\
+It turns out when you call `plot()` on a mixed effect model, it gives you the residue vs. mean plot.
+The residues seem to be pretty evenly spread across the range of mean.
 The variances are more or less even across groups, although there is a slightly larger spread at the high end of the data.
 
 So now we are all clear to do ANOVA.
@@ -242,14 +243,14 @@ So now we are all clear to do ANOVA.
 anova(model_rice)
 ```
 
-Not surprisingly, age.f explain the most variation in the data (F = 4578)!\
-Genotype also explains a siginificant amount of variation in the dataset (F = 23 \>\> 1).\
-The interaction between the treatments are also significant (F = 5 \> 1).
+Not surprisingly, age.f explain the most variation in the data (F = 4578)!
+Genotype also explains a significant amount of variation in the dataset (F = 23 >> 1).
+The interaction between the treatments are also significant (F = 5 > 1).
 
 ## Tukey test
 
-Let's really not a question of whether or not the height is different across age,\
-because we know plants grow taller over time.\
+Let's really not a question of whether or not the height is different across age,
+because we know plants grow taller over time.
 The real question is whether or not WT is taller or shorter than the mutant across age.
 
 So the `emmeans` layout should be `~ genotype | age.f`
@@ -265,24 +266,24 @@ You can also look at cld if you like.
 cld(estimate_rice$emmeans, Letters = letters)
 ```
 
-What does this tell us?\
-It tells us that in each time point (except the first),\
+What does this tell us?
+It tells us that in each time point (except the first),
 WT plants are on average significantly taller than 48/48 plants.
 
-(Note: The differences in heights at week 9 is 28.3 mm.\
-In reality, \~30 mm (3cm) difference in height is practically nothing for rice plants.\
+(Note: The differences in heights at week 9 is 28.3 mm.
+In reality, ~30 mm (3cm) difference in height is practically nothing for rice plants.
 Even though something is statistically significant, it does not always mean something practically different.)
 
 # Exercise
 
-Now you have learned how to deal with repeated measures in an experiment,\
+Now you have learned how to deal with repeated measures in an experiment,
 it's time for you to practice.
 
-We will use a mint growth experiment as an example.\
-In this experiment, the researchers looked at the effect of 6 treatments (A - F) on mint growth.\
-Each treatment has 3 pots.\
-Each pot has 4 plants. The treatment was applied to the pot, not the individual plants.\
-The growth of each plant in each pot was measured.\
+We will use a mint growth experiment as an example.
+In this experiment, the researchers looked at the effect of 6 treatments (A - F) on mint growth.
+Each treatment has 3 pots.
+Each pot has 4 plants. The treatment was applied to the pot, not the individual plants.
+The growth of each plant in each pot was measured.
 (Data from UC Davis Plant Sciences course PLS205, Winter 2017)
 
 ```{r}
@@ -291,12 +292,12 @@ head(mint_data)
 tail(mint_data)
 ```
 
-There is a problem with how the data were recorded. Maybe it's not obvious to you.\
-In each treatment, the name of the Pot is all Pot_1, Pot_2 and Pot_3.\
-However, in the actual experiment, Pot_1 from Treatment A is not the same Pot_1 for Treatment B, or CDEF.\
-The same applies to Pot_2 and Pot_3.\
-Simply put, the pots in each treatment need to have their own unique identifier.\
-Let's fix that first
+There is a problem with how the data were recorded. Maybe it's not obvious to you.
+In each treatment, the name of the Pot is all Pot_1, Pot_2 and Pot_3.
+However, in the actual experiment, Pot_1 from Treatment A is not the same Pot_1 for Treatment B, or CDEF.
+The same applies to Pot_2 and Pot_3.
+Simply put, the pots in each treatment need to have their own unique identifier.
+Let's fix that first.
 
 ```{r}
 mint_data <- mint_data %>% 
@@ -323,16 +324,16 @@ Make your plot here:
 
 Can you tell which entity was repeatably measured?
 
-Fill in the table and write down the model.\
-What are the sources of variation?\
-What factors are they? (treatment? block? observational units? experimental units?)\
+Fill in the table and write down the model.
+What are the sources of variation?
+What factors are they? (treatment? block? observational units? experimental units?)
 How many levels in each?
 
 | source | factor | levels |
 |:------:|:------:|:------:|
 |  ...   |  ...   |  ...   |
 
-What is the experimental unit for treatment?\
+What is the experimental unit for treatment?
 What is the observational unit?
 
 Set up the linear model.
