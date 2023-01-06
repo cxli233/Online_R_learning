@@ -1,18 +1,3 @@
----
-title: "Very basics of R coding"
-author: "Chenxin Li"
-date: "9/12/2020"
-output:
-  html_notebook:
-    number_sections: yes
-    toc: yes
-    toc_float: yes
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 # Introduction
 
 This is a quick introduction to R! 
@@ -176,9 +161,9 @@ If you ever get confused, you can always go look at the base R cheat sheet.
 Matrix is rectangular data that is all the same type, e.g., all numeric.
 For example, if I want a matrix like this:
 
-| 1 | 2 | 3 | 4 |
-| 1 | 2 | 1 | 2 |
-| 2 | 3 | 2 | 4 |
+| 1 | 2 | 3 | 4 |   
+| 1 | 2 | 1 | 2 |   
+| 2 | 3 | 2 | 4 |   
 
 What do I do?
 An easy way to do is combining different vectors.
@@ -345,10 +330,10 @@ Now it's time for you to practice.
 1.  Insert a new code chunk
 2.  Make this matrix
 
-| 1  | 1 | 2 | 2 |
-| 2  | 2 | 1 | 2 |
-| 2  | 3 | 3 | 4 |
-| 1  | 2 | 3 | 4 |
+| 1  | 1 | 2 | 2 |   
+| 2  | 2 | 1 | 2 |   
+| 2  | 3 | 3 | 4 |   
+| 1  | 2 | 3 | 4 |   
 
 and save it as an item called `my_mat2`.
 
