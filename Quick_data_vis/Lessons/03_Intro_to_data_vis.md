@@ -83,6 +83,8 @@ Example_data1 %>%
 
 ggsave("../Results/03_line_plot.png", height = 2.5, width = 2)
 ```
+![line graph](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/03_line_plot.png)
+
 In this case, I graphed time on x-axis, and response on y-axis. 
 This visualization is position based. 
 
@@ -112,6 +114,8 @@ Example_data1 %>%
 
 ggsave("../Results/03_bar.png", height = 2.5, width = 2)
 ```
+![bar graph](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/03_bar.png) 
+
 In this case, I graphed time on x-axis, and response on y-axis. 
 This visualization is length based. Why?
 In bar plots, values are represented by the distance from the x axis, and thus the length of the bar. 
@@ -149,6 +153,8 @@ Example_data1 %>%
 
 ggsave("../Results/03_scatter_1.png", height = 2.5, width = 2)
 ```
+![step1](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/03_scatter_1.png)
+
 If we just do that, we get a blank graph with time on x axis and response on y axis. 
 The `theme_classic()` only change the appearance of the background, read more [here](https://ggplot2.tidyverse.org/reference/ggtheme.html).
 ggplot comes with a collection of themes. My go-to is "classic". It has white background and axis lines, as you can see in this example. 
@@ -165,6 +171,8 @@ Example_data1 %>%
 
 ggsave("../Results/03_scatter_2.png", height = 2.5, width = 2)
 ```
+![step2](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/03_scatter_2.png)
+
 This is how the graph looks like after we added points. 
 To include more layers, you literally add (using the `+` syntax) layers to the existing code. 
 After the `ggplot()` line which initiates the graph, I usually add the geom layers first, then other layers, then lastly the `theme` layer. 
@@ -232,6 +240,8 @@ example2_data_1945 %>%
 
 ggsave("../Results/03_scatter_3.png", width = 2.5, height = 2.5)
 ```
+![basic scatter](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/03_scatter_3.png)
+
 That looks fine. 
 To color dots (or any geom) based on a variable in the data frame, you open an `aes()` argument inside the `geom()`.
 
@@ -246,6 +256,8 @@ example2_data_1945 %>%
 
 ggsave("../Results/03_scatter_4.png", width = 3, height = 2.5)
 ```
+![scatter, colored](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/03_scatter_4.png)
+
 Note: income is quite evenly distributed, so I log-transformed it. 
 Now we have dots colored by income (in log10 scale).
 The problem is the default color scale in ggplot looks bad. 
@@ -265,6 +277,8 @@ example2_data_1945 %>%
 
 ggsave("../Results/03_scatter_5.png", width = 3, height = 2.5)
 ```
+![scatter, colored, better](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/03_scatter_5.png)
+
 To provide a custom color scale that produce a color gradient, use `scale_color_gradientn())`.
 Here is a whole family of `scale` functions in ggplot, which allow you to control the scales for colors and axis.  
 You can read more about scales on the [ggplot cheat sheet](https://statsandr.com/blog/files/ggplot2-cheatsheet.pdf). 
