@@ -258,7 +258,7 @@ ggsave("../Results/03_scatter_4.png", width = 3, height = 2.5)
 ```
 ![scatter, colored](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/03_scatter_4.png)
 
-Note: income is quite evenly distributed, so I log-transformed it. 
+Note: income is quite unevenly distributed, so I log-transformed it. 
 Now we have dots colored by income (in log10 scale).
 The problem is the default color scale in ggplot looks bad. 
 We can use a different set of colors from the `RColorBrewer` package. 
