@@ -57,6 +57,7 @@ example_1_stacked
 
 ggsave("../Results/05_stack1.png", width = 2, height = 2.5) 
 ```
+![stacked_bar1](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/05_stack1.png)
 
 Note that there are two coloring options in `ggplot`.
 There is `color`, which is the color of the outline. 
@@ -77,6 +78,8 @@ example_1_stacked +
 
 ggsave("../Results/05_pie1.png", width = 2, height = 2.5) 
 ```
+![pie1](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/05_pie1.png)
+
 There are just two extra lines of code to convert a stack bar into a pie chart.
 First, `coord_polar(theta = "y")` wraps the y axis into a circle. 
 Second, `theme_void()` turns off the x and y axis. 
@@ -136,6 +139,8 @@ ears_1_and_2 %>%
 
 ggsave("../Results/05_stack2.png", width = 2, height = 2.5)
 ```
+![stack bar2](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/05_stack2.png)
+
 That's it! 
 I would say stacked bars are my go-to visualization for comparing proportions of multiple entities. 
 A key advantage is that side-by-side stacked bars are more space efficient. 
@@ -150,6 +155,7 @@ If you are interested, you can explore on your own.
 But what you should _never_ do is making concentric donuts. 
 Here is an example. 
 ![concentric donuts](https://github.com/cxli233/FriendsDontLetFriends/blob/main/Results/dont_concentric_donuts.svg) 
+
 For concentric donuts, you might be tempted to say the data are represented by the arc lengths, 
 which is in fact inaccurate. 
 The arc lengths on the outer rings are much longer than those in the inner rings. 
@@ -184,6 +190,8 @@ example_2 %>%
 
 ggsave("../Results/05_dot1.png", width = 3, height = 2.5)
 ```
+![actual scale](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/05_dot1.png)
+
 Looking at this graph, you would probably say the loss of biodiversity has stabilized in the last 4 decades.
 But is that so? 
 
@@ -208,6 +216,8 @@ example_2 %>%
 
 ggsave("../Results/05_dot2.png", width = 3, height = 2.5)
 ```
+![log odds scale](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/05_dot2.png)
+
 In this case, presenting proportional data in the log odds scale paints a different picture. 
 Biodiversity has decreased sharply relative to the previous decade.
 It makes sense: 
