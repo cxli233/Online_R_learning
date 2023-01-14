@@ -30,8 +30,8 @@ This repository has 7 activities:
 * rmarkdown can be installed using the intall packages interface in RStudio
 
 # Getting started
-1. Clone the repository to your machine by downloading the zip file
-2. Unzip and move folder to whichever location you like on your machine.
+1. [Clone](https://github.com/cxli233/Online_R_learning.git) the repository to your machine by downloading the zip file
+2. Unzip and move folder to whichever location you like on your machine
 3. Open RStudio  
 4. Open .Rmd files under the Scripts folder 
 5. Enjoy! 
