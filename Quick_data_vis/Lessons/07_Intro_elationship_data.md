@@ -120,6 +120,8 @@ There are 3 fundamental elements to a network diagram.
 There are multiple layout algorithms for network diagrams. 
 Layouts can drastically change the appearance of networks, making them easier or harder to interpret. 
 Here are 3 network diagrams from the same data using different layout algorithms. 
+![Try different layouts](https://github.com/cxli233/FriendsDontLetFriends/blob/main/Results/TryDifferentLayouts.svg) 
+
 They look very different from each other. Data from: [Li et al., 2022, BioRxiv](https://www.biorxiv.org/content/10.1101/2022.07.04.498697v1.abstract) 
 
 My go-to is "kk", which generally gives good results.
