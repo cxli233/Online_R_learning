@@ -23,7 +23,7 @@ We have two new packages, `igraph` and `ggraph`.
 `ggraph` is a `ggplot` extension for network visualization. 
 
 # What underlies a network? 
-![insert network here]()
+![insert network here](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/07_my_network1.png)
 
 A network consists of nodes of edges. 
 Nodes are points, and edges are lines connecting nodes. 
@@ -108,6 +108,8 @@ ggraph(my_network, layout = "kk") +
 
 ggsave("../Results/07_my_network1.png", height = 3, width = 3.5, bg = "white")
 ```
+![network 1](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/07_my_network1.png) 
+
 There are 3 fundamental elements to a network diagram. 
 
 1. Layout, which controls how nodes are placed in the 2-D plane. In this diagram I used "kk" or "Kamada-Kawai" layout algorithm. More about layout algorithms is discussed below. 
@@ -124,7 +126,7 @@ My go-to is "kk", which generally gives good results.
 But I encourage you to read more about different layouts [here](https://www.data-imaginist.com/2017/ggraph-introduction-layouts/) and [here](https://r-graph-gallery.com/247-network-chart-layouts.html). 
 
 ## Mapping variables to networks
-![insert network here]()
+![insert network here](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/07_my_network1.png)
 
 If you look at the network that we made earlier, all the dots are just black. 
 What if we want to color nodes based on additional attributes? 
@@ -169,6 +171,7 @@ ggraph(small_network,
 
 ggsave("../Results/07_small_network1.png", height = 2.5, width = 2, bg = "white")
 ```
+![small_network](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/07_small_network1.png)
 
 Now the network diagram is colored by our roles, PI or postdoc. 
 `geom_edge_link()` makes straight lines between nodes. 
@@ -189,7 +192,7 @@ There are multiple ways to achieve that. I will introduce the two most common ap
 ## Deconvolute using neigbors of nodes of interest
 The first approach is to pull out neighbors of nodes of interest. 
 Let's look at the example network we made earlier. 
-![insert network here]() 
+![insert network here](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/07_my_network1.png) 
 
 Say we are interested in nodes 1, 14, and 23.
 And we want to look at what are their direct network neighbors. 
@@ -235,6 +238,8 @@ ggraph(my_subnetwork, layout = "kk") +
 
 ggsave("../Results/07_my_network2.png", height = 3, width = 3, bg = "white")
 ```
+![network2](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/07_my_network2.png)
+
 Now we are left with nodes 1, 14, and 23 and their direct neighbors. 
 
 ## Deconvolute using module detection 
@@ -282,6 +287,8 @@ ggraph(my_network_clustered, layout = "kk") +
 
 ggsave("../Results/07_my_network3.png", height = 3, width = 3.5, bg = "white")
 ```
+![network3](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/07_my_network3.png) 
+
 The key addition in this code chunk is `aes(fill = as.factor(Module)` inside `geom_node_point()`. 
 Now the nodes are colored by which module they belong to. 
 You can see that the clustering actually makes sense: 
