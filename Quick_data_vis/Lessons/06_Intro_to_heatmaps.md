@@ -51,6 +51,7 @@ abc_1 %>%
 
 ggsave("../Results/06_abc_1.png", height = 3, width = 3)
 ```
+![heatmap1](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/06_abc_1.png)
 
 Now this is a heatmap. 
 In ggplot, heatmap can be made using `geom_tile()`. 
@@ -79,6 +80,7 @@ There are two types of color scales:
 
 You should _NEVER_ use a bidirectional color scale for unidirectional data. 
 ![Color scales](https://github.com/cxli233/FriendsDontLetFriends/blob/main/Results/ColorScales.svg)
+
 You might not have thought about this one, and people make this mistake all the time. 
 In this example, the two plots on the right use a bidirectional color scale. 
 Why? Because the blue and red are darker than white. 
@@ -123,6 +125,8 @@ genes123 %>%
 
 ggsave("../Results/06_genes_1.png", height = 2.5, width = 3)
 ```
+![gene_heatmap1](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/06_genes_1.png)
+
 We have stages on x axis, genes on y axis, and tiles colored by expression. 
 If you look at the heatmap, you might be tempted to say, gene2 is going up during development, 
 and genes 1 and 3 are not changing that much. 
@@ -161,6 +165,8 @@ genes123 %>%
 
 ggsave("../Results/06_genes_2.png", height = 2.5, width = 3)
 ```
+![gene_heatmap2](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/06_genes_2.png)
+
 In this version of the heatmap, it is obvious that genes 1 and 2 have the same expression pattern.
 They both go up during development, while gene3 has the opposite pattern. 
 
@@ -218,6 +224,8 @@ abc_1 %>%
 
 ggsave("../Results/06_abc_2.png", height = 3, width = 3)
 ```
+![rainbow](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/06_abc_2.png)
+
 Can you explain why the rainbow color scale is inappropriate for heatmaps?  
 
 ## Q2
@@ -246,5 +254,7 @@ Q2_data %>%
 
 ggsave("../Results/06_genes_3.png", height = 3.5, width = 4.2)
 ```
+![bad heatmap](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/06_genes_3.png)
+
 What is (are) wrong with this heatmap? 
 Hint: there is a lot going wrong with this heatmap. 
