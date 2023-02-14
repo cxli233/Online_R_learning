@@ -81,7 +81,7 @@ If you click on any section titles, RStudio will jump to that section.
 In R, there are 3 types of single value items: logical, numeric and character.
 For example,
 
-*   TURE or FALSE are logical
+*   TRUE or FALSE are logical
 *   1, 2, 3 ... are numeric 
 *   a, b, c ... are character
 
