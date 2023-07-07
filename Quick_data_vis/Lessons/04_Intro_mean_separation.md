@@ -63,8 +63,6 @@ groups_long %>%
 
 ggsave("../Results/04_bar.png", height = 2.5, width = 2)
 ```
-![bar plot](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/04_bar.png)
-
 `stat = "summary", fun = mean` inside `geom_bar()` calculates the mean for each group,
 such that the bar lengths are the mean, not the individual observations. 
 The `stat_summary()` layer adds the means +/- standard errors (SE) as error bars,
@@ -85,8 +83,6 @@ groups_long %>%
 
 ggsave("../Results/04_box.png", height = 2.5, width = 2)
 ```
-![box plot](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/04_box.png)
-
 Now I've made a box plot. 
 In a box plot, the center line is median. 
 The box spans interquartile range (from 25th percentile to 75th percentile). 
@@ -109,7 +105,6 @@ groups_long %>%
 
 ggsave("../Results/04_dots.png", height = 2.5, width = 2)
 ```
-![dot plot](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/04_dots.png)
 
 The offset dots layer is provided by `geom_quasirandom()` of the `ggbeeswarm` package.
 The name comes from the spread of dots looks like a swarm of bees.
@@ -154,8 +149,6 @@ groups_long %>%
 
 ggsave("../Results/04_dots_violin.png", height = 2.5, width = 2)
 ```
-![dot and violin and box plot](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/04_dots_violin.png)
-
 In this case, I overlaid both violin plot and box plot onto the dots. 
 The width of the violin plot shows the distribution, 
 which as you can see follows the offset of the dots.
@@ -214,8 +207,6 @@ tissue_culture %>%
 
 ggsave("../Results/04_multi_bar.png", height = 3, width = 6)
 ```
-![bad example](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/04_multi_bar.png)
-
 I have cultivar on x axis, buds/shoots on y axis, 
 and color bars by the combination of explant and treatment. 
 This is very horrendous! It is extremely difficult to interpret what is going on. 
@@ -240,8 +231,6 @@ tissue_culture %>%
 
 ggsave("../Results/04_multi_dots.png", height = 6, width = 9)
 ```
-![multifactorial example, better](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/04_multi_dots.png) 
-
 Now this is a lot better. 
 Since the authors want to find the best conditions for each cultivar, we make each cultivar a subplot. 
 This is provided by `facet_wrap()`. 
@@ -259,7 +248,7 @@ Can you explain what happened?
 Can you explain in what scenario is more appropriate to have `scales = "free"` turned on vs off? 
 
 ## Q2 
-Here is an example data for you to practise: 
+Here is an example data for you to practice: 
 ```{r}
 M1 <- data.frame(
   conc = rnorm(n = 8, mean = 0.03, sd = 0.01)
@@ -271,7 +260,7 @@ M1 <- data.frame(
     ) %>% 
       mutate(group = "trt")
   ) %>% 
-  mutate(metabolite = "Compound 1")
+  mutate(pest = "Pest 1")
 
 M2 <- data.frame(
   conc = rnorm(n = 8, mean = 6, sd = 1)
@@ -283,7 +272,7 @@ M2 <- data.frame(
     ) %>% 
       mutate(group = "trt")
   ) %>% 
-  mutate(metabolite = "Compound 2")
+  mutate(pest = "Pest 2")
 
 M3 <- data.frame(
   conc = rnorm(n = 8, mean = 20, sd = 0.5)
@@ -295,17 +284,17 @@ M3 <- data.frame(
     ) %>% 
       mutate(group = "trt")
   ) %>% 
-  mutate(metabolite = "Compound 3")
+  mutate(pest = "Pest 3")
 
-Metabolites <- rbind(
+Spray <- rbind(
   M1, M2, M3
 )
 
-head(Metabolites)
+head(Spray)
 ```
 
 In this hypothetical experiment, I have two treatments: ctrl vs. trt. 
-And I measured the concentration of three metabolites. 
+And I measured the occurrence of three different pests after spraying either treatments. 
 Make a mean separation plot for this experiment. 
 
 Hints: 
@@ -313,10 +302,10 @@ Hints:
 * Is this a multifactorial experiment? 
 * How many observations are there in each group? 
 
-Does the treatment seem to affect any of the three compounds? 
+Was the treatment effective in controlling any of the three pests? 
 Save the graph using `ggsave()`. 
 
-
+ 
 
 
 
