@@ -52,38 +52,22 @@ Again the codes in text are highlighted in `grey`.
 First let's start with an example.
 
 ```{r}
-C_elegans_DAPI <- read_excel("../Data/C_elegans_DAPI.xlsx")
-head(C_elegans_DAPI)
+USDA_2022 <- read_csv(file = "../Data/USDA_2022_matrix.csv")
+
+head(USDA_2022)
 ```
 
-|group|A|B|C|D|E|F|treatment|  
-|-----|-|-|-|-|-|-|---------|
-|    9|6|6|6|6|6|6| L4440   |
+Here are data queried from USDA [National Agriculture Statitics Service](https://www.nass.usda.gov/Data_and_Statistics/)
 
-...(the rest of the table)
-
-
-This is an experiment conducted by MCB160L (Genetics Labs) students at UC Davis (Spring 2019).
-In this experiment, there were two students per group.
-Each group looked at number of DAPI bodies in C. elegans oocyte during meiosis I.
-They made as much as 6 observations per worm (A - F).
-The worms were treated with 4 treatments:
-
-1. L4440 = empty vector control (negative control).
-2 - 4. RNAi constructs targeting meiotic genes syp-2, rec-8 and zim-1, repectively.
-
-(FYI: In the empty vector control, the expectation was 6 DAPI bodies;
-there should be more DAPI body in RNAi treated oocytes.) 
-
-Anyway, that was the experiment, and the results were all recorded in this table.
+In this table, each row is a crop, and each column is the yield at a given year. 
 
 ## Data frames
 
 This table is called a data frame in the jargon of R.
 A data frame is simply a data table. It has rows and columns.
 An important aspect of data frame is that rows of the same column must be the same class of variable.
-For example, in column "A", all values in column "A" are numeric. 
-In column "treatment", all values in that column are characters. 
+For example, in column "Crop", all values in column "Crop" are characters.
+In column "2022", all values in that column are numeric.  
 This is just one thing to keep in mind when working with data frames.
 
 ## Tidy data
@@ -99,19 +83,13 @@ A good practice is to tidy your data FIRST before you do any analyses.
 Let's look at this table again:
 
 ```{r}
-head(C_elegans_DAPI)
+head(USDA_2022)
 ```
-
-|group|A|B|C|D|E|F|treatment|  
-|-----|-|-|-|-|-|-|---------|
-|    9|6|6|6|6|6|6| L4440   |
-
-...(the rest of the table) 
 
 Is this table a tidy data frame?
 
 No.
-Because there are up to six observations in each group, but the observations are spread out in 6 columns.
+Because there are up to 78 years of data for each crop, but the observations are spread out in 78 columns.
 Observations spreading out in columns is sometimes called the wide format.
 The wide format is easy for data collection, but unfortunately it's not how R would like to read data.
 R likes tidy data, and tidy data frames need each observation to be in its individual row.
@@ -119,29 +97,40 @@ R likes tidy data, and tidy data frames need each observation to be in its indiv
 To convert a wide table into a tidy table, the command is `pivot_longer()` The syntax is `pivot_longer(columns, names_to = "name", values_to = "value")`
 
 ```{r}
-DAPI_tidy <- C_elegans_DAPI %>% #the %>% ("pipe") operator means taking the output of previous row and use it as input of next row 
-  pivot_longer(names_to = "observation", values_to = "count", cols = c(A, B, C, D, E, `F`)) 
-#The `F` syntax prevents F to be read as the logical value FALSE by R 
+USDA_tidy <- USDA_2022 %>% #the %>% ("pipe") operator means taking the output of previous row and use it as input of next row 
+  pivot_longer(names_to = "Year", values_to = "Yield", cols = !Crop) 
 
-head(DAPI_tidy)
+# cols = !Crop specifies all columns other than Crop. 
+
+head(USDA_tidy)
 ```
+
 
 What this code chunk did is that it made two new columns:
 
-1.  The "name" column (sometimes called the label column) is "observation":
-    it houses which original columns the data came from (A - F).
+1.  The "name" column (sometimes called the label column) is "Year":
+    it houses which original columns the data came from (all the years).
 
-2.  The "value" column is "count": it is the variable that was actually measured.
+2.  The "value" column is "Yield": it is the variable that was actually measured.
 
-3.  The columns to collect data from were A - F.
+3.  The columns to collect data from were all the years, i.e., not the "Crop" column. 
 
 Now this is a tidy data frame. Each row is an observation. Each column is a variable.
-We have 4 variables:
+We have 3 variables:
 
-*   group,
-*   treatment (4 treatments),
-*   observations (A up to F),
-*   count of DAPI bodies (numeric).
+*   Crop,
+*   Year (many years),
+*   Yield (numeric).
+
+However, there is just one problem. We should always check each variables are recorded as the correct type of data (e.g., character vs numeric).
+A quick way is calling `str()` (stands for "structure")
+```{r}
+str(USDA_tidy)
+```
+You will realize in the output it says "$ Year : chr [1:624]". 
+"chr" stands for character. We need it to be numeric. 
+We will talk about how to change that in a second. 
+
 
 Let's look at another example. This time it's a hypothetical example that I made up.
 
@@ -172,7 +161,7 @@ example_data_tidy
 
 1.  The "name" column now is "sample": it houses which original columns the data came from (sample1 to sample3).
 2.  The "value" column is "expression": it is the variable that was actually measured.
-3.  The columns to collect data from were sample1 to sample3.
+3.  The columns to collect data from were sample1 to sample3. Alternatively, `cols = !gene` (all columns but gene) should also work. 
 
 Now this is a tidy data frame. Each row is an observation. Each column is a variable.
 We have 3 variables: sample (3 samples), genes (gene1 to gene3), and expression (numeric).
@@ -191,61 +180,62 @@ These are very useful and you will probably use these functions all the time.
 There are actually two ways to subset a data frame: subsetting by columns and subsetting by rows.
 Let's do subsetting by columns first.
 
-Using our tidy DAPI data now,
+Using our tidy USDA data now,
 say we only want the columns count and treatment and leave out the rest of the columns.
 The command is simple, just `select()` the columns you want.
 
 ```{r}
-head(DAPI_tidy)
+head(USDA_tidy)
 
-DAPI_tidy_2 <- DAPI_tidy %>% 
-  select(observation, count) #just selecting observation and count 
+USDA_tidy_2 <- USDA_tidy %>% 
+  select(Crop, Yield) #just selecting Crop and Yield 
 
-head(DAPI_tidy_2)
+head(USDA_tidy_2)
 ```
 
 Now we just get two columns.
 
 The more useful subsetting function is subsetting by rows based on the values of one or more columns.
-The command is `filter()` In the DAPI experiment, not all groups have all 6 observations. And we only want to keep rows that actually have a count.
+The command is `filter()`. 
+In the USDA data, let's say we only want years that have data because data were not collected for some years for some crops.  
 
 ```{r}
-DAPI_tidy_3 <- DAPI_tidy %>% 
-  filter(is.na(count) == FALSE) #filter for rows that the count value is not NA  
+USDA_tidy_3 <- USDA_tidy %>% 
+  filter(is.na(Yield) == FALSE) # filter for rows that the Yield value is not NA  
 
-nrow(DAPI_tidy)
-nrow(DAPI_tidy_3)
+nrow(USDA_tidy)
+nrow(USDA_tidy_3)
 ```
 
-Now the data frame went from 456 rows to 205 rows.
-So the students actually made a total of 205 observations.
+Now the data frame went from 624 rows to 578 rows.
+So there were actually a total of 578 of data.
 Note: in `filter()`, you should use `==` to mean "equal".
 
-Let's say we only want the empty vector control:
+Let's say we only want corn. 
 
 ```{r}
-DAPI_tidy_L4440 <- DAPI_tidy_3 %>% 
-  filter(treatment == "L4440") # filter out rows that were from the L4440 treatment
+USDA_tidy_corn <- USDA_tidy_3 %>% 
+  filter(Crop == "corn") 
 
-nrow(DAPI_tidy_3)
-nrow(DAPI_tidy_L4440)
+nrow(USDA_tidy)
+nrow(USDA_tidy_corn)
 ```
 
-Looks like there are 56 observations for the empty vector control.
+Looks like there are 78 years of data for corn. 
 
-Let's say you want to filter for L4440 and rec-8:
+Let's say you want to filter for corn and wheat: 
 
 ```{r}
-DAPI_tidy_L4440_rec <- DAPI_tidy_3 %>% 
-  filter(treatment == "L4440" |
-           treatment == "rec-8") 
+USDA_tidy_corn_wheat <- USDA_tidy_3 %>% 
+  filter(Crop == "corn" |
+           Crop == "wheat") 
 
-nrow(DAPI_tidy_3)
-nrow(DAPI_tidy_L4440_rec) 
+nrow(USDA_tidy)
+nrow(USDA_tidy_corn_wheat) 
 ```
 
-The vertical bar `|` means "or" in R. In this chunk you are filtering for either L4440 or rec-8.\
-You shouldn't use `&` ("and") here, because there is no treatment that is both L4440 and rec-8.
+The vertical bar `|` means "or" in R. In this chunk you are filtering for either corn or wheat.
+You shouldn't use `&` ("and") here, because there is no crop that is both corn and wheat.
 
 ## Making new columns
 
@@ -253,79 +243,106 @@ Oftentimes you will need to make new variables based on existing ones.
 The command is `mutate()`.
 As a biologist, I don't think "mutate" sound too intuitive, but it is what it is.
 
-Say in the worm experiment, I want a new column called "count_per_chromosome".
-C. elegans has 6 chromosomes but diploid (2 copies each), so count per chromosome will be dividing each count by 12.
+We realized earlier the "Year" column is specified as a character variable. 
+We need to convert that to a numeric variable. 
 
 ```{r}
-DAPI_tidy_chr <- DAPI_tidy_3 %>% 
-  mutate(count_per_chr = count/12) 
+USDA_tidy_3 <- USDA_tidy_3 %>% 
+  mutate(Year = as.numeric(Year)) 
 
-head(DAPI_tidy_chr)
+head(USDA_tidy_3)
 ```
 
-Now you get a new column called "count_per_chr".
+Now you get a new column Year that is recorded as numeric.  
 As you can imagine, you can do any mathematical operations to a
 numerical column within `mutate()`.
 
-Let's do another example.
-Say in this worm experiment, groups 1 - 12 were in one classroom, and the rest were in another classroom. 
-I want to have a column that records which room the students were working in.
+Let's do another example. 
+The yield for every crop other than cotton, canola, and rice are recorded in bushel/acre. Cotton, canola, and rice were recorded in lbs.  
+The number of pounds in a bushel vary by grain.  
+Let's say there are 60 lbs in 1 bushel of wheat but only 56 lbs for corn.
+48 lbs/bu for barley, 60 lbs/bu for soybean, and 56 lbs for sorghum. 
+Let's convert all the yield units to lbs/acre.  
 
 ```{r}
-DAPI_tidy_room <- DAPI_tidy_3 %>% 
-  mutate(room = case_when(
-    group <= 12 ~ "room1",
-    group > 12 ~ "room2"
+USDA_tidy_lbs <- USDA_tidy_3 %>% 
+  mutate(Yields_lbs = case_when(
+    Crop == "barley" ~ Yield * 48,
+    Crop == "corn" ~ Yield * 56, 
+    Crop == "soybean" ~ Yield * 60,
+    Crop == "sorghum" ~ Yield * 56, 
+    Crop == "wheat" ~ Yield * 60,
+    T ~ Yield
   ))
 
-head(DAPI_tidy_room)
+head(USDA_tidy_lbs)
 ```
 
 `case_when()` is an extremely useful command within `mutate()`.
 The syntax is `case_when(condition ~ outcome)`.
-In this case, when group <= 12, it applies a value of "room1", otherwise, it applies a value of "room2".
+For example, when Crop is barley, it applies a value of 48 lbs/bu. 
+The `T ~ ...` inside `case_when()` stands for "for the rest that are not the above". 
 
 ## Summarise
 
 Before you do real statistical inference, maybe you want to just take a look at the summary statistics. 
 This can be done easily using the `group_by()` and `summarise()` commands.
 
-Say I would like the average, standard deviation and n of each treatment.
+Let's simulate an experiment. In this experiment, let's say there are two groups: one experimental treatment and a control. 
+The experiment was conducted in two locations: A and B. 
+And let's say we measured some kind of response. 
+Say I would like the average, standard deviation and number of observations for each group. 
 
 ```{r}
-DAPI_tidy_summary <- DAPI_tidy_3 %>% 
-  group_by(treatment) %>%  
-  summarise(mean = mean(count),
-            sd = sd(count),
-            n = n()) %>% 
-  ungroup()
+# You can ignore this chunk. 
+trt <- rnorm(n = 10, mean = 10, sd = 1)
+ctrl <- rnorm(n = 10, mean = 6, sd = 1)
+location <- c(rep("A", 5), rep("B", 5))
 
-head(DAPI_tidy_summary)
+example_experiment <- data.frame(
+  ctrl,
+  trt,
+  location
+) %>% 
+  pivot_longer(names_to = "group", values_to = "response", cols = 1:2)
+
+head(example_experiment)
 ```
 
+```{r}
+example_experiment %>% 
+  group_by(group) %>% 
+  summarise(
+    mean = mean(response),
+    sd = sd(response),
+    n = n()
+  ) %>% 
+  ungroup()
+```
+
+
 1.  `group_by()` selects which columns you want to summarise from.
-    In this case you just want each treatment to be a group.
+    In this case you just want each group to be a group.
 2.  `summarise()` allows you to call the statistical functions, such as mean, sd, and n.
 3.  It's a good practice to `ungroup()` after you are done.
     Most of the time it doesn't matter, but it will create problems if you don't and you try to switch/modify grouping later.
 
-Now you just get 4 rows and 4 columns, each row is a treatment.
-The summary statistics are what people want to read in publications.
-However, you would still want to release raw data as a supplemental file.
-
-Say I would like to average the counts for each group and for each treatment. Can I do that?
+Now you just get 2 rows and 4 columns, each row is a group. 
+Say I would like to average the counts for each group and for each location. Can I do that?
 
 ```{r}
-DAPI_tidy_summary_group <- DAPI_tidy_3 %>% 
-  group_by(group, treatment) %>%  
-  summarise(mean = mean(count)) %>% 
+example_experiment %>% 
+  group_by(group, location) %>% 
+  summarise(
+    mean = mean(response),
+    sd = sd(response),
+    n = n()
+  ) %>% 
   ungroup()
-
-head(DAPI_tidy_summary_group)
 ```
 
 1.  This time you need to select group and treatment in `group_by()`.
-    Because you want the mean for each group and each treatment.
+    Because you want the mean for each group and each location.
 2.  In `summarise()` you call the mean function.
 3.  It's a good practice to `ungroup()` after you are done.
 
@@ -472,7 +489,7 @@ birth_and_mortality %>%
        title = "Year 1945") +
   theme_classic()
 
-ggsave("../Results/02_scatter_plot.png", width = 3, height = 3)
+ggsave("../Results/02_scatter_plot.png", width = 2.5, height = 2.5)
 ```
 
 You do see a upward trend, supporting our hypothesis.

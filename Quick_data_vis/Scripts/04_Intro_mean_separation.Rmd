@@ -262,7 +262,7 @@ Can you explain what happened?
 Can you explain in what scenario is more appropriate to have `scales = "free"` turned on vs off? 
 
 ## Q2 
-Here is an example data for you to practise: 
+Here is an example data for you to practice: 
 ```{r}
 M1 <- data.frame(
   conc = rnorm(n = 8, mean = 0.03, sd = 0.01)
@@ -274,7 +274,7 @@ M1 <- data.frame(
     ) %>% 
       mutate(group = "trt")
   ) %>% 
-  mutate(metabolite = "Compound 1")
+  mutate(pest = "Pest 1")
 
 M2 <- data.frame(
   conc = rnorm(n = 8, mean = 6, sd = 1)
@@ -286,7 +286,7 @@ M2 <- data.frame(
     ) %>% 
       mutate(group = "trt")
   ) %>% 
-  mutate(metabolite = "Compound 2")
+  mutate(pest = "Pest 2")
 
 M3 <- data.frame(
   conc = rnorm(n = 8, mean = 20, sd = 0.5)
@@ -298,17 +298,17 @@ M3 <- data.frame(
     ) %>% 
       mutate(group = "trt")
   ) %>% 
-  mutate(metabolite = "Compound 3")
+  mutate(pest = "Pest 3")
 
-Metabolites <- rbind(
+Spray <- rbind(
   M1, M2, M3
 )
 
-head(Metabolites)
+head(Spray)
 ```
 
 In this hypothetical experiment, I have two treatments: ctrl vs. trt. 
-And I measured the concentration of three metabolites. 
+And I measured the occurrence of three different pests after spraying either treatments. 
 Make a mean separation plot for this experiment. 
 
 Hints: 
@@ -316,10 +316,10 @@ Hints:
 * Is this a multifactorial experiment? 
 * How many observations are there in each group? 
 
-Does the treatment seem to affect any of the three compounds? 
+Was the treatment effective in controlling any of the three pests? 
 Save the graph using `ggsave()`. 
 
-
+ 
 
 
 
