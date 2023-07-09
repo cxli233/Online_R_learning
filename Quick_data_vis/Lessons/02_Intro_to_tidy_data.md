@@ -476,6 +476,8 @@ birth_and_mortality %>%
 ggsave("../Results/02_scatter_plot.png", width = 2.5, height = 2.5)
 ```
 
+![scatter plot](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Results/02_scatter_plot.png) 
+
 You do see a upward trend, supporting our hypothesis.
 In countries with higher child mortality, women also tended to give more births.
 
