@@ -1,5 +1,5 @@
 # "Quick data vis" 
-This is a 7-part quick course in data visualization using R. 
+This is a 8-part quick course in data visualization using R. 
 
 **Graphical Abstract** 
 
@@ -14,14 +14,15 @@ This is a 7-part quick course in data visualization using R.
 3. GitHub will render a nice html 
 
 # Content
-This repository has 7 activities: 
+This repository has 8 activities: 
 1. Very bascis of R coding
 2. Introduction to tidy data frames
 3. Introduction to data visualization using ggplot 
 4. Introduction to mean separation 
 5. Introduction to proportional data 
 6. Introduction to heatmaps
-7. Introduction to relationship data and networks 
+7. Introduction to relationship data and networks
+8. Introduction to plot composition/assembly 
 
 # Required software:
 
