@@ -1,0 +1,314 @@
+---
+title: "08_Plot_assembly"
+author: "Chenxin Li"
+date: "2023-07-09"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction 
+In this lesson, we will create publication ready composite plots. 
+I.e., each composite plot (or figure) is assembled from multiple panels. 
+And the panels themselves could also be a composite of multiple plots. 
+
+You will learn:
+
+1. How to arrange and assemble composite plots.
+2. How to control relative heights and widths of panels.
+3. How to generate hierarchical composite plots.
+4. How to control the panel labels. 
+
+As an example, we will be using the "mtcars" dataset from R. 
+Don't worry about what the data or these plots mean. 
+This is just an example. 
+
+# Pacakge 
+We will be using the `patchwork` package. 
+Documentation and tutorials can be found [here](https://github.com/thomasp85/patchwork). 
+While it is not the only package for plot assembly, it is my go-to. 
+
+```{r}
+library(tidyverse)
+library(ggbeeswarm)
+library(patchwork)
+
+library(RColorBrewer)
+```
+
+# Making the panels 
+You can ignore this entire section. 
+This section generates the parts that we will use to assemble our final figure. 
+
+## A
+```{r}
+A2 <- mtcars %>% 
+  mutate(AM = case_when(
+    am == 1 ~ "manual",
+    am == 0 ~ "automatic"
+  )) %>% 
+  ggplot(aes(x = mpg, y = disp)) +
+  geom_point(size = 3, alpha = 0.8, color = "white",
+             shape = 21, aes(fill = AM)) +
+  scale_fill_manual(values = c("tomato1", "grey20")) +
+  labs(x = "Miles/(US) gallon",
+       y = "Displacement (cu.in.)",
+       fill = "Automatic") +
+  theme_classic() +
+  theme(
+    legend.position = c(0.8, 0.8)
+  )
+
+A1 <- mtcars %>% 
+  mutate(AM = case_when(
+    am == 1 ~ "manual",
+    am == 0 ~ "automatic"
+  )) %>% 
+  ggplot(aes(y = mpg, x = "")) +
+  geom_quasirandom(size = 3, alpha = 0.8, color = "white",
+             shape = 21, aes(fill = AM)) +
+  scale_fill_manual(values = c("tomato1", "grey20")) +
+  labs(y = "Miles/(US) gallon",
+       x = NULL) +
+  theme_classic() +
+  theme(
+    legend.position = "none"
+  ) +
+  coord_flip()
+
+A3 <- mtcars %>% 
+  mutate(AM = case_when(
+    am == 1 ~ "manual",
+    am == 0 ~ "automatic"
+  )) %>% 
+  ggplot(aes(y = disp, x = "" )) +
+  geom_quasirandom(size = 3, alpha = 0.8, color = "white",
+             shape = 21, aes(fill = AM)) +
+  scale_fill_manual(values = c("tomato1", "grey20")) +
+  labs(y = "Displacement (cu.in.)",
+       x = NULL) +
+  theme_classic() +
+   theme(
+    legend.position = "none"
+  ) 
+
+# A_scatter
+ggsave(plot = A2, filename = "../Results/08_A2.png", height = 5, width = 5)
+
+# A_hist_mpg
+ggsave(plot = A1, filename = "../Results/08_A1.png", height = 3, width = 5)
+
+# A_hist_disp
+ggsave(plot = A3, filename = "../Results/08_A3.png", height = 3, width = 5)
+```
+
+## B
+```{r}
+Panel_B <- mtcars %>% 
+  mutate(VS = case_when(
+    vs == 0 ~ "V shaped",
+    vs == 1 ~ "Straight"
+  )) %>% 
+  ggplot(aes(x = VS, y = hp)) +
+  geom_quasirandom(size = 3, alpha = 0.8, 
+                   aes(color = VS)) +
+  scale_color_manual(values = brewer.pal(8, "Accent")[5:6]) +
+  labs(x = "Engine",
+       y = "Horsepower") +
+  theme_classic() +
+  theme(legend.position = "none") +
+  coord_flip()
+
+# Panel_B
+ggsave("../Results/08_B.png", height = 2, width = 5)
+```
+
+## C 
+```{r}
+Panel_C <- mtcars %>% 
+  mutate(rank_wt = rank(wt, ties.method = "first")) %>% 
+  ggplot(aes(x = "", y = rank_wt)) +
+  geom_tile(aes(fill = mpg)) +
+  scale_fill_gradientn(colours = brewer.pal(9, "YlGnBu")) +
+  labs(x = NULL,
+       y = "Rank of Weight",
+       fill = "Miles/(US) gallon") +
+  theme_classic()
+
+# Panel_C
+ggsave("../Results/08_C.png", height = 6, width = 3)
+```
+
+
+# Putting plots together 
+Let's say we want to make a figure with three panels: A, B & C. 
+And we want a layout like this: 
+
+| Column 1    | Column 2 |
+| :---------: | :------: |
+| Panel A     | Panel C  |
+| Panel B     | Panel C  |
+
+The top left corner is panel A.
+The lower left corner is panel B.
+The right side is panel C. 
+
+## Panel A
+For the sake of this lesson, let's make panel A itself a composite of three sub-panels. 
+The 3 sub-panels are called "A1", "A2", and "A3". 
+
+Let's say I want panel A to look like this: 
+
+| Column 1    | Column 2  |
+| :---------: | :-------: |
+| A1          | Blank     |
+| A2          | A3        |
+
+Notice that we only have 3 sub-panels to fill this 2x2 layout. 
+In this case the upper right corner is left blank. 
+What should we do? 
+
+Let's look at each sub-panel for panel A first. 
+I already saved them as an R item in the memory. 
+```{r}
+A1
+A2
+A3
+```
+
+### The design of the composite 
+To create a composite, we use the `wrap_plots()` function from `patchwork`. 
+The name is somewhat self-explanatory as for wrapping plots into a larger one. 
+`patchwork` has an intuitive way to arrange plots using the `design = ` argument. 
+In this case, the design looks like this: 
+
+```{r}
+design <- c(
+  "A#
+   BC"
+)
+```
+
+The `design` argument is a character vector of uppercase letters (A, B, C, and so on).
+within this vector we start new lines to mean different rows in the composite.
+In this case, the `design` has two rows, so the composite will have two rows. 
+It specified that "part A" will be at the top left, and that "part B" will be at the lower left. 
+Finally, "part C" will be at the lower right. 
+The "#" sign indicates a blank space. 
+
+To set it up, we simply call `wrap_plot()` and list the sub-panels in order.
+```{r}
+wrap_plots(A1, A2, A3,
+           design = c("A#
+                       BC"))
+
+ggsave("../Results/08_A_1.png", height = 6, width = 6)
+```
+The way `wrap_plots()` matches sub-panel names to parts A, B, and C is by the order. 
+In this case, the first sub-panel name (A1) provided is part A, and so on. 
+
+### Controling relative heights and widths of sub-panels. 
+`patchwork` allows you control the relative heights and the widths of sub-panels. 
+In this example, we have a 2x2 design. 
+Let's say I want the 1st row to 30% of the height of the 2nd row.
+And I want the 2nd column to be 30% of the width of the 1st. 
+This can be specified using the `heights = ` and `widths =` argument within `wrap_plots()`.
+
+```{r}
+wrap_plots(A1, A2, A3,
+           design = c("A#
+                       BC"), 
+           heights = c(0.3, 1),
+           widths = c(1, 0.3))
+
+ggsave("../Results/08_A_2.png", height = 6, width = 6)
+```
+For example, vector `c(0.3, 1)` passed on to the `widths` option specifies that the 1st column should be 0.3 of the width of the 2nd column.  
+Notice we only 2 rows and columns, so the heights and widths vectors each have 2 numbers. 
+However, if the dimension of the design is different, the heights & widths vectors must have matching dimension too. 
+For example, if your design have 3 rows and 4 columns, the heights vector must have 3 numbers, and the widths vector must have 4 columns. 
+
+Finally, we can control where we put panel labels. 
+In publication ready figures, each panel is labeled by a letter (e.g., A, B, C and so on).
+In this example, panel A has 3 sub-panels, how do we control which sub-panel gets labeled? 
+We can control this by using `+ labs(tag = "...")` option in `wrap_plots()`. 
+Let's say we want the letter "A" to appear at the upper left of panel A. 
+The best way to do this is appending `+ labs(tag = "A")` to the first sub-panel, in this case A1.  
+
+
+```{r}
+Panel_A <- wrap_plots(A1 +
+                        labs(tag = "A"), 
+           A2, A3, 
+           design = c("A#
+                       BC"),
+           heights = c(0.3, 1),
+           widths = c(1, 0.3))
+
+Panel_A
+ggsave("../Results/08_A.png", height = 6, width = 6)
+```
+Now we have panel A! 
+
+## Hierarchical assembly 
+We made panel A, but we still need to assemble panel A with panels B and C.
+Well, we don't have to stop here. 
+We can call `wrap_plots()` again, now using "Panel_A" as one of the parts. 
+
+Here are panels B and C:
+```{r}
+Panel_B
+Panel_C
+```
+
+Let's say we want panel A and panel B to be in the left column, panel C alone take up the entire right column, what should the design argument be? 
+```{r}
+c("AC
+   BC")
+```
+In this case, the design vector has two rows. 
+And we specified that part C should take up both rows of the 2nd column, as we specified that part C should occupy both the 1st and 2nd rows. 
+
+And let's say we want the 2nd column to the 1/10 of the width of the 1st.
+And that the 2nd row to be 30% of the height of the 1st. 
+Again, we can control that by calling `widths = ` and `heights = ` within `wrap_plots()`. 
+
+```{r}
+ wrap_plots(Panel_A, 
+                     Panel_B, 
+                     Panel_C, 
+                     design = "AC
+                               BC",
+                     widths = c(1, 0.1),
+                     heights = c(1, 0.3))
+
+ggsave("../Results/08_assembled.png", height = 7, width = 8)
+```
+Now we are really close. 
+Notice that only panel A is labeled? 
+We want panel B to be labeled with a "B" and panel C to be labeled with a "C". 
+We just need to append `+ labs(tag = "B")` and `+ labs(tag = "C")` to the respective panels. 
+
+## Adding panel label 
+```{r}
+ wrap_plots(Panel_A, 
+              Panel_B +
+              labs(tag = "B"), 
+                     Panel_C +
+              labs(tag = "C"), 
+                     design = "AC
+                               BC",
+                     widths = c(1, 0.1),
+                     heights = c(1, 0.3))
+
+ggsave("../Results/08_assembled_label.png", height = 7, width = 8)
+```
+Done! 
+Great, we have a publication ready figure! 
+
+# Exercise
+Use your own data from your research to generate a composite figure. 
+Save it using `ggsave()`. 
+
