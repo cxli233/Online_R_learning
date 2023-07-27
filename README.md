@@ -1,8 +1,6 @@
 # Online_learning_Agroforestry
 Refresher Course on Agroforestry
 
-Release v5: 
-[![DOI](https://zenodo.org/badge/252339170.svg)](https://zenodo.org/badge/latestdoi/252339170)
 
 * Course Director: Dr. A. Arunachalam (Director, ICAR-CAFRI)
 * Authors: Suresh Ramanan S. (Scientist) and A.K. Handa (Prinicipal Scientist), ICAR-CAFRI
