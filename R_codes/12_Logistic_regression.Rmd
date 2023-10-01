@@ -61,7 +61,7 @@ As more PCR cycle occurred, more dsDNA was made, and more fluorescence.
 Thus you can use the fluorescence to track the concentration of PCR products.
 
 ```{r}
-qPCR <- read_delim("../data/SYBR_Green.txt", delim = "\t", col_types = cols())
+qPCR <- read_delim("../data/SYBR_green.txt", delim = "\t", col_types = cols())
 head(qPCR)
 ```
 
