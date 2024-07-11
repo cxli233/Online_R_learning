@@ -5,7 +5,7 @@ Release v5:
 [![DOI](https://zenodo.org/badge/252339170.svg)](https://zenodo.org/badge/latestdoi/252339170)
 
 
-* Author: Chenxin Li, Postdoc researcher, Center for Applied Genetic Technologies, UGA  
+* Author: Chenxin Li, Ph.D., Assistant Research Scientist at Department of Crop & Soil Sciences and Center for Applied Genetic Technologies, UGA  
 * Contact: chenxin.li@uga.edu | [@ChenxinLi2](https://twitter.com/ChenxinLi2)
 
 Required software:
