@@ -5,7 +5,7 @@ This is a 8-part quick course in data visualization using R.
 
 ![Graphical Abstract](https://github.com/cxli233/Online_R_learning/blob/master/Quick_data_vis/Graphical_abstract_2023_01_14.png)
 
-* Author: Chenxin Li, Postdoc researcher, Center for Applied Genetic Technologies, UGA  
+* Author: Chenxin Li, Ph.D., Assistant Research Scientist at Department of Crop & Soil Sciences and Center for Applied Genetic Technologies, UGA  
 * Contact: chenxin.li@uga.edu | [@ChenxinLi2](https://twitter.com/ChenxinLi2)
 
 # Browse lessons using an internet browser 
