@@ -6,13 +6,15 @@ Release v5:
 
 
 * Author: Chenxin Li, Ph.D., Assistant Research Scientist at Department of Crop & Soil Sciences and Center for Applied Genetic Technologies, UGA  
-* Contact: chenxin.li@uga.edu | [@ChenxinLi2](https://twitter.com/ChenxinLi2)
+* Contact: chenxin.li@uga.edu | [@ChenxinLi2](https://twitter.com/ChenxinLi2) | [@chenxinli2.bsky.social](https://bsky.app/profile/chenxinli2.bsky.social)
 
 Required software:
 
 * R: [R Download](https://cran.r-project.org/bin/)
 * RStudio: [RStudio Download](https://www.rstudio.com/products/rstudio/download/)
 * rmarkdown can be installed using the intall packages interface in RStudio
+
+Interested in data visualization? The [data visualization module](https://github.com/cxli233/Quick_data_vis/) now has its own repository! 
 
 # Content
 This repository has 14 activities: 
