@@ -6,7 +6,7 @@ Release v5:
 
 
 * Author: Chenxin Li, Ph.D., Assistant Research Scientist at Department of Crop & Soil Sciences and Center for Applied Genetic Technologies, UGA  
-* Contact: chenxin.li@uga.edu | [@ChenxinLi2](https://twitter.com/ChenxinLi2) | [@chenxinli2.bsky.social](https://bsky.app/profile/chenxinli2.bsky.social)
+* Contact: lichen27@msu.edu | [@chenxinli2.bsky.social](https://bsky.app/profile/chenxinli2.bsky.social)
 
 Required software:
 
