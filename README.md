@@ -5,7 +5,7 @@ Release v5:
 [![DOI](https://zenodo.org/badge/252339170.svg)](https://zenodo.org/badge/latestdoi/252339170)
 
 
-* Author: Chenxin Li, Ph.D., Assistant Research Scientist at Department of Crop & Soil Sciences and Center for Applied Genetic Technologies, UGA  
+* Author: Chenxin Li, Ph.D., Assistant Professor at Department of Plant Biology, Michigan State University. 
 * Contact: lichen27@msu.edu | [@chenxinli2.bsky.social](https://bsky.app/profile/chenxinli2.bsky.social)
 
 Required software:
